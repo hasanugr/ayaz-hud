@@ -28,7 +28,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ; Bulanık cam için Windows 10 1803 ve sonrası
 MinVersion=10.0.17134
 OutputDir=..\cikti
-OutputBaseFilename=AyazHUD-Kurulum-{#Surum}
+OutputBaseFilename=AyazHUD-Setup-{#Surum}
 SetupIconFile=..\src\AyazHUD\Varliklar\simge.ico
 UninstallDisplayIcon={app}\{#Exe}
 UninstallDisplayName={#Ad}
@@ -63,6 +63,7 @@ Source: "{#Kaynak}\{#Exe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Kaynak}\{#Exe}.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Kaynak}\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Kaynak}\PresentMon-2.6.0-x64.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 Source: "lisanslar\*"; DestDir: "{app}\lisanslar"; Flags: ignoreversion
 Source: "..\bagimliliklar\PawnIO\PawnIO_setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Check: PawnIOGerekli
 

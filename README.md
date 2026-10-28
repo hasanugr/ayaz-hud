@@ -23,7 +23,7 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
 
 ## Kurulum
 
-`AyazHUD-Kurulum-<sürüm>.exe` dosyasını çalıştır. Kurulum şunları yapar:
+[Releases](https://github.com/hasanugr/ayaz-hud/releases/latest) sayfasından `AyazHUD-Setup-<sürüm>.exe` dosyasını indirip çalıştır. Kurulumun dili ilk ekranda seçilir (Türkçe ya da İngilizce). Kurulum şunları yapar:
 
 1. Uygulamayı `C:\Program Files\AyazHUD` klasörüne kurar.
 2. Kurulu değilse [PawnIO](https://github.com/namazso/PawnIO) sürücüsünü kurar. İşlemci sıcaklığı ve anakart fanları bu imzalı sürücüyle okunur.
@@ -41,7 +41,7 @@ Gerekenler:
 - [Inno Setup 7](https://jrsoftware.org/isdl.php). Yalnızca kurulum dosyası için gerekir.
 
 ```powershell
-# Derle ve kurulum dosyasını üret (cikti\AyazHUD-Kurulum-<sürüm>.exe)
+# Derle ve kurulum dosyasını üret (cikti\AyazHUD-Setup-<sürüm>.exe)
 powershell -ExecutionPolicy Bypass -File derle.ps1
 
 # Yalnızca uygulamayı derle
@@ -87,7 +87,7 @@ Komut satırı seçenekleri:
 
 ## Lisans
 
-Uygulamanın kendi lisansı henüz seçilmedi. Kullanılan bileşenlerin lisansları `kurulum/lisanslar/` klasöründe:
+Ayaz HUD [MIT lisansıyla](LICENSE) dağıtılır. Kullanılan bileşenler kendi lisanslarıyla gelir; metinleri `kurulum/lisanslar/` klasöründe ve kurulumla birlikte uygulama klasöründe:
 
 - LibreHardwareMonitor: MPL-2.0.
 - PresentMon: MIT.

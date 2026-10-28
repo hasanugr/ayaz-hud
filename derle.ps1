@@ -1,4 +1,4 @@
-# Ayaz HUD'u Release olarak derler ve kurulum dosyasini (cikti\AyazHUD-Kurulum-<surum>.exe) uretir.
+# Ayaz HUD'u Release olarak derler ve kurulum dosyasini (cikti\AyazHUD-Setup-<surum>.exe) uretir.
 # Gerekenler: .NET SDK 8+ (dotnet), Inno Setup 7 (ISCC.exe).
 # Kullanim: powershell -ExecutionPolicy Bypass -File derle.ps1
 param(
@@ -31,4 +31,4 @@ if ($LASTEXITCODE -ne 0) { throw "Derleme basarisiz" }
 & $Iscc "/DSurum=$surum" (Join-Path $kok 'kurulum\AyazHUD.iss')
 if ($LASTEXITCODE -ne 0) { throw "Kurulum dosyasi uretilemedi" }
 
-Get-Item (Join-Path $kok "cikti\AyazHUD-Kurulum-$surum.exe") | Select-Object FullName, Length
+Get-Item (Join-Path $kok "cikti\AyazHUD-Setup-$surum.exe") | Select-Object FullName, Length
