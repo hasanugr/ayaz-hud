@@ -15,7 +15,7 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
 - **Düzenleme:** Widget'lar sürüklenir, birbirine hizalanır, açılıp kapatılır.
 - **Görünüm:**
   - Dört kart stili var: buzlu cam, akrilik, koyu ve şeffaf.
-  - Vurgu rengi, kart buzlanması (hafif, orta, güçlü) ve kart koyuluğu bütün widget'lar için ya da her widget için ayrı seçilebilir.
+  - Vurgu rengi, kart buzlanması (%10–100, 10'ar 10'ar) ve kart koyuluğu bütün widget'lar için ya da her widget için ayrı seçilebilir.
   - Widget'ların olduğu ekranın tamamı istenirse buzlanır ve/veya kararır ("arka plan" ayarı).
   - Ayarlar penceresinde her seçeneğin önizlemesi görünür.
 - **Dil:** Türkçe ve İngilizce. Kurulumda seçilir (varsayılan Türkçe), sonra ayarlardan değiştirilebilir. Metinler `Arayuz/Dil.cs` içindeki tabloda.
@@ -64,7 +64,8 @@ Sürüm numarası `src/AyazHUD/AyazHUD.csproj` içindeki `<Version>` alanında. 
 | FPS | `Cekirdek/FpsOlcer.cs` | PresentMon'un CSV çıktısı okunur. Ön plandaki ya da en yüksek FPS'li süreç oyun sayılır; listedeki tarayıcı, Discord gibi programlar hariç tutulur. PresentMon bir iş nesnesine bağlıdır, uygulama kapanınca o da kapanır. |
 | Widget penceresi | `Widgetlar/WidgetPenceresi.cs` | Saydam, kenarlıksız WPF penceresi. Bulanıklık için `SetWindowCompositionAttribute` kullanılır, çünkü DWM'nin resmi arka planı pencere etkin değilken kayboluyor. Köşeler Windows 11'in kendi yuvarlamasıyla kırpılır. Pencere hep en altta durur, odak çalmaz, kilitliyken tıklamaları arkasına geçirir. |
 | Tasarım | `Arayuz/` | Halka ölçer, çizgi grafik, çubuk, harf aralıklı başlık. Ortak renkler `Tema.cs` içinde. Widget'a göre değişen stil ve renk `Gorunum.cs` içinde; her pencere kendi `Gorunum` örneğini içindeki denetimlere miras olarak verir. |
-| Arka plan buzlanması | `Widgetlar/BuzKatmani.cs` | Monitörü kaplayan, tıklamaları geçiren bulanık pencere. Widget'lar ona bağlı (sahipli) pencereler olduğu için hep onun üstünde kalır. |
+| Buzlanma düzeyleri | `Arayuz/BuzSeviyesi.cs`, `Widgetlar/MasaustuKopyasi.cs`, `Widgetlar/KatmanPenceresi.cs` | Windows'un bulanıklık yarıçapı sabit ve güçlü. Hafif düzeylerde masaüstünün DWM küçük resmi (thumbnail) birkaç piksel kaydırılarak üst üste bindirilir; çizimi DWM yapar, uygulama kare işlemez. Orta düzeylerde bu kopya Windows bulanıklığının üstünde yarı saydam durur, güçlü düzeylerde bulanık pencereler üst üste konur. |
+| Arka plan buzlanması | `Widgetlar/BuzKatmani.cs` | Monitörü kaplayan, tıklamaları geçiren buzlanma katmanları. Widget'lar onlara bağlı (sahipli) pencereler olduğu için hep üstlerinde kalır. |
 | Ayarlar | `Ayar/Ayarlar.cs`, `AyarPenceresi.xaml` | `%APPDATA%\AyazHUD\ayarlar.json` |
 | Günlük | `Cekirdek/Gunluk.cs` | `%LOCALAPPDATA%\AyazHUD\gunluk.txt` |
 | Kurulum | `kurulum/AyazHUD.iss` | Inno Setup betiği. PawnIO'yu `-install -silent` ile kurar, görevi `--gorev-kur` ile oluşturur. |

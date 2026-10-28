@@ -1,19 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
+using AyazHUD.Arayuz;
 using AyazHUD.Yerel;
 
 namespace AyazHUD.Widgetlar
 {
     /// <summary>
     /// Arka plan ayarı: widget'ların olduğu monitörün tamamını kaplayan, tıklamaları geçiren buzlanma ve karartma.
-    /// Buzlanma gücü üst üste konan bulanık katman sayısıdır (1 hafif, 2 orta, 3 güçlü); karartma en üst katmanın tonudur.
+    /// Buzlanmanın nasıl yapıldığı <see cref="BuzSeviyesi"/>'nde; karartma en üst katmanın tonudur. Masaüstü kopyası
+    /// pencerenin tonunu örttüğü için kopya varken karartma ayrı bir katmanda durur.
     /// Katmanlar ve widget'lar birbirine bağlı (sahipli) pencereler olduğu için sıra hep: masaüstü, katmanlar, widget'lar.
     /// </summary>
     internal sealed class BuzKatmani
     {
-        public const int EnGucluBuzlanma = 3;
-
         readonly List<KatmanPenceresi> _katmanlar = new List<KatmanPenceresi>();
         Ekran _ekran;
 
@@ -24,27 +25,31 @@ namespace AyazHUD.Widgetlar
 
         public BuzKatmani(Ekran ekran) => _ekran = ekran;
 
-        /// <param name="buzlanma">0 = yok, 1–3 bulanık katman sayısı.</param>
-        /// <param name="karartma">En üst katmanın koyu tonu (0–0,9).</param>
+        /// <param name="buzlanma">Yüzde (0 = yok).</param>
+        /// <param name="karartma">Koyu ton (0–0,9).</param>
         public void Ayarla(int buzlanma, double karartma)
         {
-            buzlanma = Math.Max(0, Math.Min(EnGucluBuzlanma, buzlanma));
+            var s = BuzSeviyesi.Al(buzlanma);
             // Buzlanma yoksa yalnızca karartan tek bir katman
-            int adet = Math.Max(1, buzlanma);
-            var cam = buzlanma > 0 ? Win32.AccentState.Bulanik : Win32.AccentState.Kapali;
-            if (_katmanlar.Count != adet || _katmanlar[0].Cam != cam)
+            var camlar = Enumerable.Repeat(s.Katman > 0 ? Win32.AccentState.Bulanik : Win32.AccentState.Kapali, Math.Max(1, s.Katman)).ToList();
+            int kopyali = camlar.Count - 1;
+            if (s.Kopyali && karartma > 0.005) camlar.Add(Win32.AccentState.Kapali);
+            if (!camlar.SequenceEqual(_katmanlar.Select(k => k.Cam)))
             {
                 Kapat();
-                for (int i = 0; i < adet; i++)
+                foreach (var cam in camlar)
                 {
-                    var k = new KatmanPenceresi(cam, false) { Owner = i == 0 ? null : _katmanlar[i - 1] };
+                    var k = new KatmanPenceresi(cam, false) { Owner = _katmanlar.LastOrDefault() };
                     _katmanlar.Add(k);
                     k.Show();
                 }
-                Yerlestir(_ekran);
             }
             for (int i = 0; i < _katmanlar.Count; i++)
+            {
+                _katmanlar[i].Kopyala(s.Yaricap, i == kopyali && s.Kopyali ? s.Opaklik : 0);
                 _katmanlar[i].Karartma = i == _katmanlar.Count - 1 ? karartma : 0;
+            }
+            Yerlestir(_ekran);
         }
 
         public void Yerlestir(Ekran ekran)

@@ -8,9 +8,11 @@ using AyazHUD.Yerel;
 namespace AyazHUD.Widgetlar
 {
     /// <summary>
-    /// İçi boş, tıklamaları geçiren, arkası bulanık ve/veya koyu bir pencere. Buzlanmayı güçlendirmek için
-    /// kullanılır: Windows'un bulanıklık yarıçapı sabit, ama üst üste konan her bulanık pencere altındakini
-    /// bir kez daha bulanıklaştırır. Arka plan katmanında monitörü, widget'larda kartı kaplar.
+    /// İçi boş, tıklamaları geçiren bir buzlanma penceresi. Arka plan katmanında monitörü, widget'larda kartı kaplar.
+    /// - Arkası Windows bulanıklığıyla bulanık olabilir. Yarıçap sabit, ama üst üste konan her bulanık pencere
+    ///   altındakini bir kez daha bulanıklaştırır.
+    /// - İçine masaüstünün hafif bulanık kopyası çizilebilir (<see cref="Kopyala"/>).
+    /// - Koyu bir tonu olabilir; kopya varsa onun altında kalır.
     /// Sahibi yoksa kendini en alta zorlar; varsa Windows onu sahibinin hemen üstünde tutar.
     /// </summary>
     internal sealed class KatmanPenceresi : Window
@@ -18,6 +20,8 @@ namespace AyazHUD.Widgetlar
         readonly SolidColorBrush _ton = new SolidColorBrush(Colors.Transparent);
         readonly Win32.AccentState _cam;
         readonly bool _yuvarlak;
+        MasaustuKopyasi _kopya;
+        double _kopyaYaricapi, _kopyaOpakligi;
 
         public IntPtr Tutamac { get; private set; }
 
@@ -46,7 +50,36 @@ namespace AyazHUD.Widgetlar
 
         public double Karartma
         {
-            set => _ton.Color = Color.FromArgb((byte)Math.Round(255 * Math.Max(0, Math.Min(0.9, value))), 8, 10, 16);
+            set => _ton.Color = Ton(value);
+        }
+
+        /// <summary>Arka plan karartmasının rengi; kart da aynı tonu kullanır.</summary>
+        public static Color Ton(double karartma) =>
+            Color.FromArgb((byte)Math.Round(255 * Math.Max(0, Math.Min(0.9, karartma))), 8, 10, 16);
+
+        /// <summary>Masaüstünün kopyasını çiz; opaklık 0 ise kaldır. Yarıçap %100 ölçekte piksel.</summary>
+        public void Kopyala(double yaricap, double opaklik)
+        {
+            _kopyaYaricapi = yaricap;
+            _kopyaOpakligi = opaklik;
+            KopyayiYerlestir();
+        }
+
+        void KopyayiYerlestir()
+        {
+            if (Tutamac == IntPtr.Zero) return;
+            if (_kopyaOpakligi <= 0)
+            {
+                _kopya?.Dispose();
+                _kopya = null;
+                return;
+            }
+            Win32.GetWindowRect(Tutamac, out var alan);
+            if (alan.Genislik <= 1) return; // henüz yerleştirilmedi
+            var ekran = Ekran.Penceresinin(Tutamac);
+            if (ekran == null) return;
+            if (_kopya == null) _kopya = new MasaustuKopyasi(Tutamac);
+            _kopya.Ayarla(alan, ekran.Alan, _kopyaYaricapi * ekran.Olcek, _kopyaOpakligi);
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -59,7 +92,8 @@ namespace AyazHUD.Widgetlar
                 Win32.CamAyarla(Tutamac, _cam, _cam == Win32.AccentState.Akrilik ? 0x14FFFFFFu : 0x01000000u);
             if (_yuvarlak && WidgetPenceresi.Windows11)
             {
-                int kose = Win32.DWMWCP_ROUND, cizgiYok = Win32.DWMWA_COLOR_NONE;
+                // Bulanıklık yokken yuvarlak pencerenin altına açık renkli bir yüzey çizildiği için yuvarlanmaz
+                int kose = _cam == Win32.AccentState.Kapali ? Win32.DWMWCP_DONOTROUND : Win32.DWMWCP_ROUND, cizgiYok = Win32.DWMWA_COLOR_NONE;
                 Win32.DwmSetWindowAttribute(Tutamac, Win32.DWMWA_WINDOW_CORNER_PREFERENCE, ref kose, sizeof(int));
                 Win32.DwmSetWindowAttribute(Tutamac, Win32.DWMWA_BORDER_COLOR, ref cizgiYok, sizeof(int));
             }
@@ -72,6 +106,14 @@ namespace AyazHUD.Widgetlar
             bool sahipsiz = Owner == null;
             Win32.SetWindowPos(Tutamac, sahipsiz ? Win32.HWND_BOTTOM : IntPtr.Zero, x, y, genislik, yukseklik,
                 Win32.SWP_NOACTIVATE | (sahipsiz ? 0 : Win32.SWP_NOZORDER));
+            KopyayiYerlestir();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _kopya?.Dispose();
+            _kopya = null;
+            base.OnClosed(e);
         }
 
         IntPtr PencereIslemi(IntPtr hwnd, int mesaj, IntPtr wParam, IntPtr lParam, ref bool islendi)

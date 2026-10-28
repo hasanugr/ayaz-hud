@@ -34,13 +34,16 @@ namespace AyazHUD.Arayuz
 
         public static void Ata(DependencyObject d, Gorunum g) => d.SetValue(OrnekProperty, g);
 
-        public const int EnGucluBuzlanma = 3;
-
         public Color VurguRengi { get; private set; } = Color.FromRgb(125, 211, 252);
         public double Koyuluk { get; private set; } = 0.45;
         public KartStili Stil { get; private set; } = KartStili.Bulanik;
-        /// <summary>Bulanık stillerde buzlanma gücü: 1 hafif, 2 orta, 3 güçlü (kartın arkasındaki bulanık katman sayısı).</summary>
-        public int Buzlanma { get; private set; } = 1;
+        /// <summary>Bulanık stillerde buzlanma yüzdesi (10–100, bkz. <see cref="BuzSeviyesi"/>).</summary>
+        public int Buzlanma { get; private set; } = VarsayilanBuzlanma;
+
+        public const int VarsayilanBuzlanma = 80;
+
+        /// <summary>Kartlarda buzlanma en az %10; kapalı isteyen koyu ya da şeffaf stili seçer.</summary>
+        public static int KartBuzlanmasi(int yuzde) => Math.Max(10, BuzSeviyesi.Yuvarla(yuzde));
 
         public readonly SolidColorBrush Vurgu = new SolidColorBrush();
         public readonly SolidColorBrush Baslik = new SolidColorBrush();      // vurgu %95
@@ -62,7 +65,7 @@ namespace AyazHUD.Arayuz
             VurguRengi = vurgu;
             Koyuluk = Math.Max(0, Math.Min(0.95, koyuluk));
             Stil = stil;
-            Buzlanma = Math.Max(1, Math.Min(EnGucluBuzlanma, buzlanma));
+            Buzlanma = KartBuzlanmasi(buzlanma);
 
             Vurgu.Color = vurgu;
             Baslik.Color = Tema.Alfa(vurgu, 0.95);

@@ -1,4 +1,4 @@
-<Window x:Class="AyazHUD.AyarPenceresi"
+﻿<Window x:Class="AyazHUD.AyarPenceresi"
         x:ClassModifier="internal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -228,7 +228,7 @@
                                 <TextBlock x:Name="GenelBuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
                                 <TextBlock Text="{a:M a.kartBuzlanmasi}" />
                             </DockPanel>
-                            <Slider x:Name="GenelBuzlanma" Minimum="1" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                            <Slider x:Name="GenelBuzlanma" Minimum="10" Maximum="100" IsSnapToTickEnabled="True" TickFrequency="10" SmallChange="10" LargeChange="10" Margin="0,8,0,0" />
                             <DockPanel Margin="0,18,0,0">
                                 <TextBlock x:Name="GenelKoyulukYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
                                 <TextBlock Text="{a:M a.kartKoyulugu}" />
@@ -260,7 +260,7 @@
                                     <TextBlock x:Name="BuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
                                     <TextBlock Text="{a:M a.buzlanma}" />
                                 </DockPanel>
-                                <Slider x:Name="Buzlanma" Minimum="0" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                                <Slider x:Name="Buzlanma" Minimum="0" Maximum="100" IsSnapToTickEnabled="True" TickFrequency="10" SmallChange="10" LargeChange="10" Margin="0,8,0,0" />
                                 <DockPanel Margin="0,18,0,0">
                                     <TextBlock x:Name="KarartmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
                                     <TextBlock Text="{a:M a.karartma}" />
@@ -319,7 +319,7 @@
                                             <TextBlock x:Name="OzelBuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
                                             <TextBlock Text="{a:M a.kartBuzlanmasi}" />
                                         </DockPanel>
-                                        <Slider x:Name="OzelBuzlanma" Minimum="1" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                                        <Slider x:Name="OzelBuzlanma" Minimum="10" Maximum="100" IsSnapToTickEnabled="True" TickFrequency="10" SmallChange="10" LargeChange="10" Margin="0,8,0,0" />
                                     </StackPanel>
                                     <TextBlock Text="{a:M a.vurgu}" Margin="0,18,0,10" />
                                     <StackPanel x:Name="OzelRenkler" Orientation="Horizontal" />

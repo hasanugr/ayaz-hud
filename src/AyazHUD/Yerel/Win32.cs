@@ -137,6 +137,54 @@ namespace AyazHUD.Yerel
         [DllImport("dwmapi.dll")]
         public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
+        // ---------- DWM küçük resmi (bir pencerenin canlı kopyası) ----------
+
+        public const int DWM_TNP_RECTDESTINATION = 0x1;
+        public const int DWM_TNP_RECTSOURCE = 0x2;
+        public const int DWM_TNP_OPACITY = 0x4;
+        public const int DWM_TNP_VISIBLE = 0x8;
+        public const int DWM_TNP_SOURCECLIENTAREAONLY = 0x10;
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DWM_THUMBNAIL_PROPERTIES
+        {
+            public int dwFlags;
+            public RECT rcDestination;
+            public RECT rcSource;
+            public byte opacity;
+            public int fVisible;
+            public int fSourceClientAreaOnly;
+        }
+
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmRegisterThumbnail(IntPtr destination, IntPtr source, out IntPtr thumbnail);
+
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmUnregisterThumbnail(IntPtr thumbnail);
+
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmUpdateThumbnailProperties(IntPtr thumbnail, ref DWM_THUMBNAIL_PROPERTIES properties);
+
+        // ---------- Pencere listesi ----------
+
+        public delegate bool WindowEnumProc(IntPtr hwnd, IntPtr data);
+
+        [DllImport("user32.dll")]
+        public static extern bool EnumWindows(WindowEnumProc proc, IntPtr data);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern int GetClassName(IntPtr hwnd, System.Text.StringBuilder name, int size);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowVisible(IntPtr hwnd);
+
+        public static string SinifAdi(IntPtr hwnd)
+        {
+            var ad = new System.Text.StringBuilder(64);
+            GetClassName(hwnd, ad, ad.Capacity);
+            return ad.ToString();
+        }
+
         // ---------- Monitörler ----------
 
         public const uint MONITOR_DEFAULTTONEAREST = 2;

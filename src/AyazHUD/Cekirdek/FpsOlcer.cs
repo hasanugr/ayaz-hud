@@ -74,7 +74,7 @@ namespace AyazHUD.Cekirdek
                 return;
             }
 
-            // Varsayılan (2.x) ölçümler: kare süresi ve görüntü gecikmesi (DisplayLatency). Gecikme için karelerin
+            // Varsayılan (2.x) ölçümler: kare süresi ve görüntü gecikmesi. Gecikme için karelerin
             // ekrana çıkışı izlenir; ekran kartı ve fare/klavye izlenmez.
             var bilgi = new ProcessStartInfo(_exe,
                 "--output_stdout --no_console_stats --session_name AyazHUD --stop_existing_session " +
@@ -110,7 +110,7 @@ namespace AyazHUD.Cekirdek
 
         void Oku(Process p, StringBuilder hata)
         {
-            int ad = -1, pid = -1, ms = -1, gecikme = -1;
+            int ad = -1, pid = -1, ms = -1, gecikme = -1, ekranaCikis = -1, cpuSuresi = -1;
             bool baslik = true;
             try
             {
@@ -127,19 +127,25 @@ namespace AyazHUD.Cekirdek
                         pid = Sutun("ProcessID");
                         ms = Sutun("MsBetweenPresents", "FrameTime", "MsBetweenAppStart");
                         gecikme = Sutun("DisplayLatency", "MsDisplayLatency");
+                        // 2.6'da hazır gecikme sütunu yok: karenin işlenmeye başlamasından Present() çağrısına kadar
+                        // geçen süre (MsCPUBusy) ile Present()'ten ekrana çıkışa kadar geçen süre (MsUntilDisplayed) toplanır
+                        ekranaCikis = Sutun("MsUntilDisplayed");
+                        cpuSuresi = Sutun("MsCPUBusy");
                         if (ad < 0 || pid < 0 || ms < 0) Gunluk.Yaz("PresentMon başlığı beklenmedik: " + satir);
-                        else if (gecikme < 0) Gunluk.Yaz("PresentMon gecikme sütunu yok: " + satir);
+                        else if (gecikme < 0 && (ekranaCikis < 0 || cpuSuresi < 0)) Gunluk.Yaz("PresentMon gecikme sütunu yok: " + satir);
                         baslik = false;
                         _hal = FpsHali.OyunYok;
                         Gunluk.Yaz("PresentMon başladı, sütunlar: " + satir);
                         continue;
                     }
-                    if (ad < 0 || pid < 0 || ms < 0 || alan.Length <= Math.Max(ad, Math.Max(pid, Math.Max(ms, gecikme)))) continue;
+                    if (ad < 0 || pid < 0 || ms < 0 || alan.Length <= new[] { ad, pid, ms, gecikme, ekranaCikis, cpuSuresi }.Max()) continue;
                     if (!double.TryParse(alan[ms], NumberStyles.Float, CultureInfo.InvariantCulture, out double sure) || sure <= 0 || sure > 1000) continue;
                     if (!int.TryParse(alan[pid], out int no)) continue;
                     // Ekrana çıkmayan karelerde gecikme "NA" yazar
-                    if (gecikme < 0 || !double.TryParse(alan[gecikme], NumberStyles.Float, CultureInfo.InvariantCulture, out double gec) || gec <= 0 || gec > 1000)
-                        gec = double.NaN;
+                    double Deger(int sutun) =>
+                        sutun >= 0 && double.TryParse(alan[sutun], NumberStyles.Float, CultureInfo.InvariantCulture, out double d) ? d : double.NaN;
+                    double gec = gecikme >= 0 ? Deger(gecikme) : Deger(ekranaCikis) + Deger(cpuSuresi);
+                    if (!(gec > 0 && gec <= 1000)) gec = double.NaN;
 
                     double t = Simdi;
                     lock (_kilit)

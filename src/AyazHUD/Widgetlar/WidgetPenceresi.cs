@@ -55,9 +55,14 @@ namespace AyazHUD.Widgetlar
         bool _duzenleme, _surukleniyor;
         (int X, int Y)? _hedef;
 
-        // Buzlanmayı güçlendiren, kartın hemen arkasındaki ek bulanık katmanlar (orta: 1, güçlü: 2)
+        // Kartın hemen arkasındaki buzlanma katmanları: hafif düzeylerde masaüstü kopyalı tek katman,
+        // güçlü düzeylerde kartın kendi bulanıklığını artıran ek bulanık katmanlar
         readonly List<KatmanPenceresi> _ekKatmanlar = new List<KatmanPenceresi>();
         Window _tabanSahip;
+        int _arkaBuzlanma;
+        double _arkaKarartma;
+        // Masaüstü kopyası arka plan katmanının karartmasını göstermediği için o ton kartın içinde tekrarlanır
+        readonly SolidColorBrush _arkaTon = new SolidColorBrush(Colors.Transparent);
 
         public WidgetPenceresi(string kimlik, IWidget icerik, bool kartli)
         {
@@ -81,7 +86,6 @@ namespace AyazHUD.Widgetlar
             Gorunum.Ata(this, Gorunum);
             Gorunum.Degisti += () =>
             {
-                CamUygula();
                 GolgeUygula();
                 EkKatmanlariKur();
             };
@@ -91,6 +95,7 @@ namespace AyazHUD.Widgetlar
             if (kartli)
             {
                 _kok.Width = KartGenisligi;
+                _kok.Children.Add(new Border { CornerRadius = new CornerRadius(KoseYaricapi), Background = _arkaTon });
                 _kok.Children.Add(new Border
                 {
                     CornerRadius = new CornerRadius(KoseYaricapi),
@@ -142,23 +147,42 @@ namespace AyazHUD.Widgetlar
         }
 
         /// <summary>
-        /// Pencerenin altında kalacağı pencere (arka plan katmanı ya da yok). Ek katmanlar varsa sıra:
-        /// taban sahip, ek katmanlar, widget.
+        /// Pencerenin altında kalacağı arka plan katmanı ve onun buzlanma/karartma ayarı. Ek katmanlar varsa sıra:
+        /// arka plan katmanı, ek katmanlar, widget.
         /// </summary>
-        public Window TabanSahip
+        public void TabanAyarla(Window sahip, int arkaBuzlanma, double arkaKarartma)
         {
-            get => _tabanSahip;
-            set
-            {
-                _tabanSahip = value;
-                EkKatmanlariKur();
-            }
+            _tabanSahip = sahip;
+            _arkaBuzlanma = arkaBuzlanma;
+            _arkaKarartma = arkaKarartma;
+            EkKatmanlariKur();
+        }
+
+        /// <summary>Arka plan katmanından ayırır (katman kapanırken widget da kapanmasın); katmanlara dokunmaz.</summary>
+        public void TabandanAyir()
+        {
+            _tabanSahip = null;
+            if (_ekKatmanlar.Count > 0) _ekKatmanlar[0].Owner = null;
+            else Owner = null;
+        }
+
+        /// <summary>
+        /// Kartın arkasının buzlanması. Arka plan katmanının üstündeyken kartın arkası zaten buzlu; kart çevresinden
+        /// net görünmesin diye iki yüzde toplanır.
+        /// </summary>
+        BuzSeviyesi Seviye()
+        {
+            if (!Kartli || !Gorunum.Bulanik) return BuzSeviyesi.Al(0);
+            return BuzSeviyesi.Al(Gorunum.Buzlanma + (_tabanSahip != null ? _arkaBuzlanma : 0));
         }
 
         void EkKatmanlariKur()
         {
-            int gereken = Kartli && IsVisible && Gorunum.Bulanik ? Gorunum.Buzlanma - 1 : 0;
-            var cam = Gorunum.Stil == KartStili.Akrilik ? Win32.AccentState.Akrilik : Win32.AccentState.Bulanik;
+            var s = Seviye();
+            // Masaüstü kopyası kartın içeriğini örtmesin diye ayrı bir katmanda; o zaman kartın kendisi bulanık değil
+            int gereken = !Kartli || !IsVisible ? 0 : s.Kopyali ? 1 : Math.Max(0, s.Katman - 1);
+            var cam = s.Kopyali && s.Katman == 0 ? Win32.AccentState.Kapali
+                    : Gorunum.Stil == KartStili.Akrilik ? Win32.AccentState.Akrilik : Win32.AccentState.Bulanik;
             if (_ekKatmanlar.Count != gereken || (_ekKatmanlar.Count > 0 && _ekKatmanlar[0].Cam != cam))
             {
                 // Sahip pencere kapanınca ona bağlı pencereler de kapanır; önce bağlar çözülür
@@ -177,9 +201,12 @@ namespace AyazHUD.Widgetlar
             foreach (var k in _ekKatmanlar)
             {
                 if (k.Owner != onceki) k.Owner = onceki;
+                k.Kopyala(s.Yaricap, s.Opaklik);
                 onceki = k;
             }
             if (Owner != onceki) Owner = onceki;
+            _arkaTon.Color = KatmanPenceresi.Ton(_tabanSahip != null && s.Kopyali ? _arkaKarartma * s.Opaklik : 0);
+            CamUygula();
             EkKatmanlariYerlestir();
         }
 
@@ -232,7 +259,9 @@ namespace AyazHUD.Widgetlar
         void CamUygula()
         {
             if (Tutamac == IntPtr.Zero || !Kartli) return;
-            var durum = Gorunum.Stil == KartStili.Bulanik ? Win32.AccentState.Bulanik
+            // Hafif buzlanmada bulanıklık kartın arkasındaki katmanda
+            var durum = Seviye().Kopyali ? Win32.AccentState.Kapali
+                      : Gorunum.Stil == KartStili.Bulanik ? Win32.AccentState.Bulanik
                       : Gorunum.Stil == KartStili.Akrilik ? Win32.AccentState.Akrilik
                       : Win32.AccentState.Kapali;
             // Koyu ton WPF tarafında (kenar yumuşatmalı) verilir; bulanıklığın kendi tonu neredeyse şeffaf.

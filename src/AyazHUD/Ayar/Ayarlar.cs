@@ -19,11 +19,11 @@ namespace AyazHUD.Ayar
         [DataMember(Order = 2)] public double Koyuluk { get; set; }
         /// <summary>Kart stili: Bulanik, Akrilik, Koyu, Seffaf (bkz. Arayuz.KartStili).</summary>
         [DataMember(Order = 3)] public string Stil { get; set; }
-        /// <summary>Kartların buzlanma gücü: 1 hafif, 2 orta, 3 güçlü.</summary>
+        /// <summary>Kartların buzlanma yüzdesi (10–100, 10'ar 10'ar).</summary>
         [DataMember(Order = 8)] public int Buzlanma { get; set; }
 
         // ---------- Arka plan: widget'ların olduğu ekranın tamamını buzlar ve/veya karartır ----------
-        /// <summary>0 = yok, 1 hafif, 2 orta, 3 güçlü.</summary>
+        /// <summary>Yüzde (0 = yok, 10'ar 10'ar).</summary>
         [DataMember(Order = 4)] public int ArkaPlanBuzlanma { get; set; }
         /// <summary>0–0,7.</summary>
         [DataMember(Order = 5)] public double ArkaPlanKarartma { get; set; }
@@ -43,12 +43,22 @@ namespace AyazHUD.Ayar
         [OnDeserializing]
         void Okunurken(StreamingContext c) => Varsayilanlar();
 
+        // 0.1.0'da buzlanma 1 hafif, 2 orta, 3 güçlü idi; bunlar şimdiki %80, %90 ve %100'e denk
+        [OnDeserialized]
+        void Okundu(StreamingContext c)
+        {
+            int Donustur(int eski) => eski >= 1 && eski <= 3 ? 70 + 10 * eski : eski;
+            Buzlanma = Donustur(Buzlanma);
+            ArkaPlanBuzlanma = Donustur(ArkaPlanBuzlanma);
+            foreach (var w in Widgetlar ?? new List<WidgetAyari>()) w.Buzlanma = Donustur(w.Buzlanma);
+        }
+
         void Varsayilanlar()
         {
             Vurgu = "#7DD3FC";
             Koyuluk = 0.45;
             Stil = "Bulanik";
-            Buzlanma = 1;
+            Buzlanma = Arayuz.Gorunum.VarsayilanBuzlanma;
             ArkaPlanBuzlanma = 0;
             ArkaPlanKarartma = 0;
             Widgetlar = new List<WidgetAyari>();

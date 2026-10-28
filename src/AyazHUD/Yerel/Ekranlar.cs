@@ -18,23 +18,30 @@ namespace AyazHUD.Yerel
             var liste = new List<Ekran>();
             Win32.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (IntPtr tutamac, IntPtr hdc, ref Win32.RECT r, IntPtr veri) =>
             {
-                var bilgi = new Win32.MONITORINFOEX { cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(Win32.MONITORINFOEX)) };
-                if (Win32.GetMonitorInfo(tutamac, ref bilgi))
-                {
-                    double olcek = 1;
-                    if (Win32.GetDpiForMonitor(tutamac, 0, out uint dpiX, out _) == 0 && dpiX > 0) olcek = dpiX / 96.0;
-                    liste.Add(new Ekran
-                    {
-                        Ad = bilgi.szDevice,
-                        Alan = bilgi.rcMonitor,
-                        CalismaAlani = bilgi.rcWork,
-                        Birincil = (bilgi.dwFlags & Win32.MONITORINFOF_PRIMARY) != 0,
-                        Olcek = olcek,
-                    });
-                }
+                var e = Olustur(tutamac);
+                if (e != null) liste.Add(e);
                 return true;
             }, IntPtr.Zero);
             return liste;
+        }
+
+        /// <summary>Pencerenin (çoğunu) içeren monitör.</summary>
+        public static Ekran Penceresinin(IntPtr hwnd) => Olustur(Win32.MonitorFromWindow(hwnd, Win32.MONITOR_DEFAULTTONEAREST));
+
+        static Ekran Olustur(IntPtr tutamac)
+        {
+            var bilgi = new Win32.MONITORINFOEX { cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(Win32.MONITORINFOEX)) };
+            if (!Win32.GetMonitorInfo(tutamac, ref bilgi)) return null;
+            double olcek = 1;
+            if (Win32.GetDpiForMonitor(tutamac, 0, out uint dpiX, out _) == 0 && dpiX > 0) olcek = dpiX / 96.0;
+            return new Ekran
+            {
+                Ad = bilgi.szDevice,
+                Alan = bilgi.rcMonitor,
+                CalismaAlani = bilgi.rcWork,
+                Birincil = (bilgi.dwFlags & Win32.MONITORINFOF_PRIMARY) != 0,
+                Olcek = olcek,
+            };
         }
 
         /// <summary>Widget'ların varsayılan olarak gideceği monitör: varsa birincil olmayan (yan) ekran.</summary>

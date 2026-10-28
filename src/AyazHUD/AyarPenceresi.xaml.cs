@@ -106,21 +106,12 @@ namespace AyazHUD
             BuzlanmaBagla(GenelBuzlanma, GenelBuzlanmaYazisi, () => _ayarlar.Buzlanma, v => _ayarlar.Buzlanma = v);
             KaydiriciBagla(Karartma, KarartmaYazisi, () => _ayarlar.ArkaPlanKarartma, v => _ayarlar.ArkaPlanKarartma = v);
 
-            Buzlanma.Value = _ayarlar.ArkaPlanBuzlanma;
-            BuzlanmaYazisi.Text = BuzlanmaAdlari[_ayarlar.ArkaPlanBuzlanma];
-            Buzlanma.ValueChanged += (s, e) =>
-            {
-                int seviye = (int)Math.Round(Buzlanma.Value);
-                BuzlanmaYazisi.Text = BuzlanmaAdlari[seviye];
-                if (_yukleniyor) return;
-                _ayarlar.ArkaPlanBuzlanma = seviye;
-                Uygula();
-            };
+            BuzlanmaBagla(Buzlanma, BuzlanmaYazisi, () => _ayarlar.ArkaPlanBuzlanma, v => _ayarlar.ArkaPlanBuzlanma = v);
             BuzOnizlemeYenile();
         }
 
         // Dil değişebildiği için her seferinde tablodan okunur
-        static string[] BuzlanmaAdlari => new[] { Dil.M("buz.0"), Dil.M("buz.1"), Dil.M("buz.2"), Dil.M("buz.3") };
+        static string BuzlanmaMetni(double yuzde) => yuzde < 5 ? Dil.M("buz.0") : Dil.Yuzde($"{yuzde:0}");
 
         void BuzOnizlemeYenile()
         {
@@ -128,17 +119,16 @@ namespace AyazHUD
             BuzOnizleme.Buzlanma(_ayarlar.ArkaPlanBuzlanma, _ayarlar.ArkaPlanKarartma);
         }
 
-        /// <summary>Kart buzlanması kaydırıcısı (1 hafif, 2 orta, 3 güçlü).</summary>
+        /// <summary>Buzlanma kaydırıcısı: 10'ar 10'ar yüzde (arka planda 0 = kapalı).</summary>
         void BuzlanmaBagla(Slider kaydirici, TextBlock yazi, Func<int> oku, Action<int> yaz)
         {
-            kaydirici.Value = Math.Max(1, oku());
-            yazi.Text = BuzlanmaAdlari[(int)kaydirici.Value];
+            kaydirici.Value = Math.Max(kaydirici.Minimum, BuzSeviyesi.Yuvarla(oku()));
+            yazi.Text = BuzlanmaMetni(kaydirici.Value);
             kaydirici.ValueChanged += (s, e) =>
             {
-                int seviye = (int)Math.Round(kaydirici.Value);
-                yazi.Text = BuzlanmaAdlari[seviye];
+                yazi.Text = BuzlanmaMetni(kaydirici.Value);
                 if (_yukleniyor) return;
-                yaz(seviye);
+                yaz(BuzSeviyesi.Yuvarla((int)Math.Round(kaydirici.Value)));
                 Uygula();
             };
         }
@@ -232,8 +222,8 @@ namespace AyazHUD
             OzelKoyuluk.Visibility = kartGorunumu;
             OzelKoyuluk.Value = Math.Round((w.OzelGorunum ? w.Koyuluk : _ayarlar.Koyuluk) * 100);
             OzelKoyulukYazisi.Text = Dil.Yuzde($"{OzelKoyuluk.Value:0}");
-            OzelBuzlanma.Value = Math.Max(1, w.OzelGorunum ? w.Buzlanma : _ayarlar.Buzlanma);
-            OzelBuzlanmaYazisi.Text = BuzlanmaAdlari[(int)OzelBuzlanma.Value];
+            OzelBuzlanma.Value = Gorunum.KartBuzlanmasi(w.OzelGorunum ? w.Buzlanma : _ayarlar.Buzlanma);
+            OzelBuzlanmaYazisi.Text = BuzlanmaMetni(OzelBuzlanma.Value);
             BuzlanmaEtkinlikleri();
             _ozelStil.Yenile();
             _ozelRenk.Yenile();

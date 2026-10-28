@@ -119,7 +119,7 @@ namespace AyazHUD.Widgetlar
                 .Select(EkraniBul).Where(e => e != null).GroupBy(e => e.Ad).Select(g => g.First()).ToList();
 
             // Katman kapanınca ona bağlı pencereler de kapanır; önce widget'lar ayrılır
-            foreach (var p in acik) p.TabanSahip = null;
+            foreach (var p in acik) p.TabandanAyir();
             foreach (var b in _buzlar.Where(b => gereken.All(e => e.Ad != b.EkranAdi)).ToList())
             {
                 b.Kapat();
@@ -135,7 +135,7 @@ namespace AyazHUD.Widgetlar
             foreach (var p in acik)
             {
                 var e = EkraniBul(p);
-                p.TabanSahip = _buzlar.FirstOrDefault(b => b.EkranAdi == e?.Ad)?.Ust;
+                p.TabanAyarla(_buzlar.FirstOrDefault(b => b.EkranAdi == e?.Ad)?.Ust, _ayarlar.ArkaPlanBuzlanma, _ayarlar.ArkaPlanKarartma);
             }
         }
 
@@ -166,7 +166,7 @@ namespace AyazHUD.Widgetlar
         {
             foreach (var p in _pencereler.Values)
             {
-                p.TabanSahip = null;
+                p.TabandanAyir();
                 p.Close();
             }
             _pencereler.Clear();

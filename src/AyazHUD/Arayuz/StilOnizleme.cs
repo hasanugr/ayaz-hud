@@ -21,7 +21,7 @@ namespace AyazHUD.Arayuz
         KartStili _stil = KartStili.Bulanik;
         Color _vurgu = Tema.VarsayilanVurgu;
         double _koyuluk = 0.45;
-        int _buzlanma, _kartBuzlanmasi = 1;
+        int _buzlanma, _kartBuzlanmasi = Gorunum.VarsayilanBuzlanma;
         double _karartma;
 
         public StilOnizleme()
@@ -36,14 +36,14 @@ namespace AyazHUD.Arayuz
             _stil = stil;
             _vurgu = vurgu;
             _koyuluk = koyuluk;
-            _kartBuzlanmasi = Math.Max(1, kartBuzlanmasi);
+            _kartBuzlanmasi = Gorunum.KartBuzlanmasi(kartBuzlanmasi);
             Kur();
         }
 
-        /// <summary>Arka plan önizlemesi: kartın arkasındaki bütün duvar kâğıdı buzlu (0–3) ve/veya karartılmış.</summary>
-        public void Buzlanma(int seviye, double karartma)
+        /// <summary>Arka plan önizlemesi: kartın arkasındaki bütün duvar kâğıdı buzlu (yüzde) ve/veya karartılmış.</summary>
+        public void Buzlanma(int yuzde, double karartma)
         {
-            _buzlanma = seviye;
+            _buzlanma = yuzde;
             _karartma = karartma;
             Kur();
         }
@@ -52,11 +52,9 @@ namespace AyazHUD.Arayuz
         {
             Children.Clear();
             double w = ActualWidth > 0 ? ActualWidth : 160, h = ActualHeight > 0 ? ActualHeight : 100;
-            var tum = new Rect(0, 0, w, h);
 
             Children.Add(new Rectangle { Fill = DuvarKagidi });
-            if (_buzlanma > 0)
-                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 8 + 10 * _buzlanma }, Margin = new Thickness(-40) });
+            Buzlu(_buzlanma, null);
             if (_karartma > 0)
                 Children.Add(new Rectangle { Fill = new SolidColorBrush(Color.FromArgb((byte)(255 * _karartma), 8, 10, 16)) });
 
@@ -66,7 +64,11 @@ namespace AyazHUD.Arayuz
             sekil.Freeze();
             if (_stil == KartStili.Bulanik || _stil == KartStili.Akrilik)
             {
-                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 8 + 8 * _kartBuzlanmasi }, Clip = sekil });
+                // Masaüstündeki gibi: arka plan buzluysa kartın buzlanması onunla toplanır
+                Children.Add(new Rectangle { Fill = DuvarKagidi, Clip = sekil });
+                Buzlu(Math.Min(100, _kartBuzlanmasi + _buzlanma), sekil);
+                if (_karartma > 0)
+                    Children.Add(new Rectangle { Fill = new SolidColorBrush(Color.FromArgb((byte)(255 * _karartma), 8, 10, 16)), Clip = sekil });
                 if (_stil == KartStili.Akrilik)
                 {
                     Children.Add(new Rectangle { Fill = new SolidColorBrush(Color.FromArgb(34, 255, 255, 255)), Clip = sekil });
@@ -114,6 +116,21 @@ namespace AyazHUD.Arayuz
             if (_stil == KartStili.Seffaf)
                 icerik.Effect = new DropShadowEffect { Color = Colors.Black, Opacity = 0.7, BlurRadius = 6, ShadowDepth = 1, Direction = 270 };
             Children.Add(icerik);
+        }
+
+        /// <summary>
+        /// Buzlanmanın taklidi, masaüstündekiyle aynı yapıda: Windows bulanıklığı büyük yarıçaplı, masaüstü kopyası
+        /// küçük yarıçaplı bir bulanıklık; ara düzeylerde kopya bulanıklığın üstünde yarı saydam.
+        /// </summary>
+        void Buzlu(int yuzde, Geometry kirpma)
+        {
+            var s = BuzSeviyesi.Al(yuzde);
+            // Kenarlarda bulanıklık soluklaşmasın diye kırpılmayan katman taşırılır
+            var tasma = kirpma == null ? new Thickness(-40) : new Thickness(0);
+            if (s.Katman > 0)
+                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 8 + 8 * s.Katman }, Clip = kirpma, Margin = tasma });
+            if (s.Kopyali)
+                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 1.5 * s.Yaricap }, Opacity = s.Opaklik, Clip = kirpma, Margin = tasma });
         }
 
         static Path Yay(double mx, double my, double r, double aci, Brush firca, double kalinlik)
