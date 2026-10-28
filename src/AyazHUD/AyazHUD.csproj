@@ -19,7 +19,7 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <SatelliteResourceLanguages>tr</SatelliteResourceLanguages>
 
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Product>Ayaz HUD</Product>
     <Title>Ayaz HUD</Title>
     <Description>FPS, işlemci, ekran kartı ve bellek bilgisini masaüstünde bulanık camlı widget'larla gösterir.</Description>

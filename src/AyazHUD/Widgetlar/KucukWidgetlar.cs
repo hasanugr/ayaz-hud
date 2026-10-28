@@ -93,10 +93,14 @@ namespace AyazHUD.Widgetlar
                 satirlar.Add((_ayarlar.Ad(fan), Bicim.Sayi(fan.Deger), "RPM"));
             if (a.GpuFan != null)
                 satirlar.Add((Dil.M("gpuFani"), a.GpuFan == 0 ? Dil.M("duruyor") : Bicim.Sayi(a.GpuFan), a.GpuFan == 0 ? "" : "RPM"));
+            // Diskler ikişer ikişer aynı hücrede; daha fazlası hücreye sığmıyor
             var diskler = a.Diskler.Where(d => !_ayarlar.Gizli(d)).ToList();
-            if (diskler.Count > 0)
-                satirlar.Add((Dil.M("disk") + " " + string.Join(" / ", diskler.Select(_ayarlar.Ad)),
-                              string.Join(" / ", diskler.Select(d => Bicim.Sayi(d.Deger))), "°C"));
+            for (int i = 0; i < diskler.Count; i += 2)
+            {
+                var ikili = diskler.Skip(i).Take(2).ToList();
+                satirlar.Add((Dil.M("disk") + " " + string.Join(" / ", ikili.Select(_ayarlar.Ad)),
+                              string.Join(" / ", ikili.Select(d => Bicim.Sayi(d.Deger))), "°C"));
+            }
 
             // Satırların sayısı değiştiyse hücreleri yeniden kur, yoksa yalnızca değerleri güncelle
             string duzen = satirlar.Count.ToString();
