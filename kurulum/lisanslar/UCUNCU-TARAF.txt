@@ -1,7 +1,7 @@
-Sistem Paneli - kullanılan üçüncü taraf bileşenler
+Ayaz HUD - kullanılan üçüncü taraf bileşenler
 ===================================================
 
-Sistem Paneli aşağıdaki açık kaynak bileşenleri değiştirmeden kullanır ve dağıtır.
+Ayaz HUD aşağıdaki açık kaynak bileşenleri değiştirmeden kullanır ve dağıtır.
 Lisans metinleri bu klasörde; kaynak kodları belirtilen adreslerde.
 
 LibreHardwareMonitorLib 0.9.6
@@ -31,4 +31,4 @@ PawnIO 2.2.0 (sürücü; kurulum sırasında PawnIO_setup.exe ile kurulur)
   Lisans : GNU General Public License 2.0 (PawnIO-GPL-2.0.txt)
   Kaynak : https://github.com/namazso/PawnIO/tree/2.2.0
   Kurulum: https://github.com/namazso/PawnIO.Setup/releases
-  PawnIO, Sistem Paneli kaldırılınca kaldırılmaz; Windows Ayarlar > Uygulamalar'dan ayrıca kaldırılabilir.
+  PawnIO, Ayaz HUD kaldırılınca kaldırılmaz; Windows Ayarlar > Uygulamalar'dan ayrıca kaldırılabilir.

@@ -1,8 +1,8 @@
-# Uygulama simgesini (src/SistemPaneli/Varliklar/simge.ico) uretir.
+# Uygulama simgesini (src/AyazHUD/Varliklar/simge.ico) uretir.
 # Koyu yuvarlak kare uzerinde 270 derecelik halka olcer; birden cok boyut tek .ico icinde PNG olarak saklanir.
 # Kullanim: powershell -ExecutionPolicy Bypass -File araclar\simge-uret.ps1
 param(
-  [string]$Cikti = (Join-Path $PSScriptRoot '..\src\SistemPaneli\Varliklar\simge.ico')
+  [string]$Cikti = (Join-Path $PSScriptRoot '..\src\AyazHUD\Varliklar\simge.ico')
 )
 
 Add-Type -AssemblyName System.Drawing

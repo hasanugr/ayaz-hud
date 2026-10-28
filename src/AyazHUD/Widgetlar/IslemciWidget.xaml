@@ -1,0 +1,23 @@
+<UserControl x:Class="AyazHUD.Widgetlar.IslemciWidget"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:a="clr-namespace:AyazHUD.Arayuz">
+    <StackPanel>
+        <a:KartBasligi x:Name="Baslik" Baslik="İŞLEMCİ" />
+        <Grid Margin="0,9.6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="153.6" />
+                <ColumnDefinition Width="19.2" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <a:HalkaOlcer x:Name="Halka" Width="153.6" Height="153.6" />
+            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                <a:DegerSatiri x:Name="Yuk" Etiket="Yük" Birim="%" />
+                <a:DegerSatiri x:Name="Frekans" Etiket="Frekans" Birim="GHz" />
+                <a:DegerSatiri x:Name="Guc" Etiket="Güç" Birim="W" Son="True" />
+            </StackPanel>
+        </Grid>
+        <a:CizgiGrafik x:Name="Grafik" Height="44" Margin="0,14.4,0,0" UstSinir="100" />
+    </StackPanel>
+</UserControl>

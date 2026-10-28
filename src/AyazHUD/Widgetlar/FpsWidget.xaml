@@ -1,0 +1,27 @@
+<UserControl x:Class="AyazHUD.Widgetlar.FpsWidget"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:a="clr-namespace:AyazHUD.Arayuz">
+    <StackPanel>
+        <a:KartBasligi x:Name="Baslik" Baslik="FPS" />
+        <!-- Sayı ve "Oyun bekleniyor" aynı yüksekliği kaplar; kart boyu değişmez -->
+        <Grid Height="126.4">
+            <TextBlock x:Name="Deger" Text="--" FontSize="120" LineHeight="120" LineStackingStrategy="BlockLineHeight"
+                       VerticalAlignment="Bottom">
+                <TextBlock.Effect>
+                    <DropShadowEffect x:Name="Parilti" ShadowDepth="0" BlurRadius="30" Opacity="0.35" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock x:Name="Bos" FontSize="32" FontWeight="Light" VerticalAlignment="Center" Margin="0,8,0,0"
+                       TextTrimming="CharacterEllipsis" Visibility="Collapsed" />
+        </Grid>
+        <!-- En düşük %1: takılmaları gösterir. Kare süresi: 1000 / FPS. Gecikme: kare başlangıcından ekrana kadar. -->
+        <UniformGrid Columns="3" Margin="0,8,0,0">
+            <a:KucukDeger x:Name="Dusuk" Etiket="En düşük %1" Birim="FPS" Margin="0,0,12,0" />
+            <a:KucukDeger x:Name="KareSuresi" Etiket="Kare süresi" Birim="ms" Margin="0,0,12,0" />
+            <a:KucukDeger x:Name="Gecikme" Etiket="Gecikme" Birim="ms" />
+        </UniformGrid>
+        <a:CizgiGrafik x:Name="Grafik" Height="44" Margin="0,14.4,0,0" />
+    </StackPanel>
+</UserControl>

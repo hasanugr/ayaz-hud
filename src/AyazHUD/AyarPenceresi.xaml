@@ -1,0 +1,372 @@
+<Window x:Class="AyazHUD.AyarPenceresi"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:a="clr-namespace:AyazHUD.Arayuz"
+        Title="Ayaz HUD · Ayarlar"
+        Width="1000" Height="720" MinWidth="800" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Background="#0E1016" Foreground="#F0F2F7"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="14"
+        TextOptions.TextFormattingMode="Display">
+    <Window.Resources>
+        <SolidColorBrush x:Key="Soluk" Color="#99A0AE" />
+        <SolidColorBrush x:Key="Kutu" Color="#171A23" />
+        <SolidColorBrush x:Key="KutuCizgi" Color="#272B38" />
+        <SolidColorBrush x:Key="Secili" Color="#1F2430" />
+
+        <Style x:Key="Baslik" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+        <Style x:Key="AltBaslik" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style x:Key="Aciklama" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Soluk}" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <!-- Ayar grupları yuvarlak köşeli koyu kutularda -->
+        <Style x:Key="Grup" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Kutu}" />
+            <Setter Property="BorderBrush" Value="{StaticResource KutuCizgi}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="20,18" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+
+        <!-- Aç/kapa anahtarı -->
+        <Style x:Key="Anahtar" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#F0F2F7" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <DockPanel Background="Transparent" LastChildFill="True">
+                            <Border x:Name="Yol" DockPanel.Dock="Right" Width="40" Height="22" CornerRadius="11" Background="#2A2F3D"
+                                    BorderBrush="#3A4052" BorderThickness="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                                <Ellipse x:Name="Top" Width="14" Height="14" Fill="#C8CDD8" HorizontalAlignment="Left" Margin="3,0,0,0" />
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </DockPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Yol" Property="Background" Value="{DynamicResource Vurgu}" />
+                                <Setter TargetName="Yol" Property="BorderBrush" Value="{DynamicResource Vurgu}" />
+                                <Setter TargetName="Top" Property="Fill" Value="#0E1016" />
+                                <Setter TargetName="Top" Property="HorizontalAlignment" Value="Right" />
+                                <Setter TargetName="Top" Property="Margin" Value="0,0,3,0" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#F0F2F7" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#11131A" />
+            <Setter Property="Foreground" Value="#F0F2F7" />
+            <Setter Property="BorderBrush" Value="{StaticResource KutuCizgi}" />
+            <Setter Property="CaretBrush" Value="#F0F2F7" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="#F0F2F7" />
+            <Setter Property="Background" Value="#232836" />
+            <Setter Property="Padding" Value="14,7" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Zemin" Background="{TemplateBinding Background}" CornerRadius="6"
+                                BorderBrush="{StaticResource KutuCizgi}" BorderThickness="1" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Zemin" Property="Background" Value="#2D3343" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Zemin" Property="Background" Value="#373E51" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- İnce kaydırıcı -->
+        <Style TargetType="Slider">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="22">
+                            <Border Height="4" CornerRadius="2" Background="#2A2F3D" VerticalAlignment="Center" />
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4" CornerRadius="2" Background="{DynamicResource Vurgu}" VerticalAlignment="Center" />
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent" />
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Width="16" Height="16" Fill="#F0F2F7" Stroke="#0E1016" StrokeThickness="2" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Sol menü -->
+        <Style x:Key="Menu" TargetType="ListBoxItem">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Zemin" CornerRadius="8" Padding="14,10" Margin="0,0,0,4" Background="Transparent">
+                            <DockPanel>
+                                <Border x:Name="Isaret" Width="3" Height="16" CornerRadius="1.5" Background="Transparent" Margin="0,0,10,0" />
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Zemin" Property="Background" Value="#171A23" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Zemin" Property="Background" Value="{StaticResource Secili}" />
+                                <Setter TargetName="Isaret" Property="Background" Value="{DynamicResource Vurgu}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sol menü -->
+        <Border Background="#0B0D12" BorderBrush="#1C1F29" BorderThickness="0,0,1,0">
+            <DockPanel Margin="16,22,16,16">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="6,0,0,22">
+                    <Image x:Name="Logo" Width="28" Height="28" />
+                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Ayaz HUD" FontWeight="SemiBold" FontSize="15" />
+                        <TextBlock x:Name="SurumYazisi" Style="{StaticResource Aciklama}" FontSize="11.5" />
+                    </StackPanel>
+                </StackPanel>
+                <ListBox x:Name="Menu" Background="Transparent" BorderThickness="0" Foreground="#F0F2F7"
+                         ItemContainerStyle="{StaticResource Menu}" SelectionChanged="Menu_SelectionChanged"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBoxItem Content="Görünüm" Tag="Gorunum" />
+                    <ListBoxItem Content="Widget'lar" Tag="Widgetlar" />
+                    <ListBoxItem Content="Fanlar ve diskler" Tag="Sensorler" />
+                    <ListBoxItem Content="Başlangıç ve hakkında" Tag="Hakkinda" />
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="32,24,32,24">
+
+                <!-- ============ Görünüm ============ -->
+                <StackPanel x:Name="SayfaGorunum">
+                    <TextBlock Style="{StaticResource Baslik}" Text="Görünüm" />
+                    <TextBlock Style="{StaticResource Aciklama}" Margin="0,0,0,18"
+                               Text="Bütün widget'ların varsayılan görünümü. Bir widget'a ayrı görünüm vermek için Widget'lar bölümüne bak." />
+
+                    <Border Style="{StaticResource Grup}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource AltBaslik}" Text="Kart stili" />
+                            <WrapPanel x:Name="GenelStiller" />
+                            <DockPanel Margin="0,12,0,0">
+                                <TextBlock x:Name="GenelBuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                <TextBlock Text="Kart buzlanması" />
+                            </DockPanel>
+                            <Slider x:Name="GenelBuzlanma" Minimum="1" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                            <DockPanel Margin="0,18,0,0">
+                                <TextBlock x:Name="GenelKoyulukYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                <TextBlock Text="Kart koyuluğu" />
+                            </DockPanel>
+                            <Slider x:Name="GenelKoyuluk" Minimum="0" Maximum="90" IsSnapToTickEnabled="True" TickFrequency="1" LargeChange="5" Margin="0,8,0,0" />
+                            <TextBlock Style="{StaticResource Aciklama}" Margin="0,6,0,0"
+                                       Text="Buzlanma, buzlu cam ve akrilik stillerde kartın arkasını ne kadar bulanıklaştıracağını belirler. Açık renkli duvar kâğıtlarında yazıların okunması için koyuluğu artır." />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Grup}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource AltBaslik}" Text="Vurgu rengi" />
+                            <StackPanel x:Name="GenelRenkler" Orientation="Horizontal" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Grup}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="200" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,24,0">
+                                <TextBlock Style="{StaticResource AltBaslik}" Text="Arka plan" />
+                                <TextBlock Style="{StaticResource Aciklama}"
+                                           Text="Widget'ların bulunduğu ekranın tamamına uygulanır; tıklamalar masaüstüne geçmeye devam eder. Hareketli ya da çok renkli duvar kâğıtlarında buzlanma, açık renkli olanlarda karartma widget'ları öne çıkarır." />
+                                <DockPanel Margin="0,18,0,0">
+                                    <TextBlock x:Name="BuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                    <TextBlock Text="Buzlanma" />
+                                </DockPanel>
+                                <Slider x:Name="Buzlanma" Minimum="0" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                                <DockPanel Margin="0,18,0,0">
+                                    <TextBlock x:Name="KarartmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                    <TextBlock Text="Karartma" />
+                                </DockPanel>
+                                <Slider x:Name="Karartma" Minimum="0" Maximum="70" IsSnapToTickEnabled="True" TickFrequency="1" LargeChange="5" Margin="0,8,0,0" />
+                            </StackPanel>
+                            <Border Grid.Column="1" CornerRadius="8" ClipToBounds="True" Height="140" VerticalAlignment="Center">
+                                <a:StilOnizleme x:Name="BuzOnizleme" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!-- ============ Widget'lar ============ -->
+                <StackPanel x:Name="SayfaWidgetlar" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource Baslik}" Text="Widget'lar" />
+                    <TextBlock Style="{StaticResource Aciklama}" Margin="0,0,0,18"
+                               Text="Hangi widget'ların görüneceğini seç ve istersen her birine ayrı bir görünüm ver." />
+
+                    <Border Style="{StaticResource Grup}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="DuzenleDugmesi" Click="Duzenle_Click" />
+                                <Button Content="Konumları sıfırla" Click="Sifirla_Click" Margin="0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="Yerleşim" FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource Aciklama}" Margin="0,4,0,0"
+                                           Text="Düzenleme açıkken widget'ları sürükle; birbirlerine ve ekran kenarına yaklaşınca hizalanırlar." />
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="230" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Grup}" Padding="8" Margin="0,0,14,14" VerticalAlignment="Top">
+                            <ListBox x:Name="WidgetListesi" Background="Transparent" BorderThickness="0" Foreground="#F0F2F7"
+                                     ItemContainerStyle="{StaticResource Menu}" SelectionChanged="WidgetListesi_SelectionChanged" />
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource Grup}">
+                            <StackPanel>
+                                <CheckBox x:Name="WidgetGoster" Style="{StaticResource Anahtar}">
+                                    <TextBlock x:Name="WidgetAdi" FontSize="17" FontWeight="SemiBold" />
+                                </CheckBox>
+                                <TextBlock Style="{StaticResource Aciklama}" Margin="0,4,0,0" Text="Masaüstünde göster" />
+                                <Border Height="1" Background="{StaticResource KutuCizgi}" Margin="0,16" />
+                                <CheckBox x:Name="OzelGorunum" Style="{StaticResource Anahtar}" Content="Bu widget'a ayrı görünüm ver" />
+                                <StackPanel x:Name="OzelAyarlar" Margin="0,16,0,0">
+                                    <StackPanel x:Name="OzelKartAyarlari">
+                                        <TextBlock Text="Kart stili" Margin="0,0,0,10" />
+                                        <WrapPanel x:Name="OzelStiller" />
+                                        <DockPanel Margin="0,8,0,0">
+                                            <TextBlock x:Name="OzelBuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                            <TextBlock Text="Kart buzlanması" />
+                                        </DockPanel>
+                                        <Slider x:Name="OzelBuzlanma" Minimum="1" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                    <TextBlock Text="Vurgu rengi" Margin="0,18,0,10" />
+                                    <StackPanel x:Name="OzelRenkler" Orientation="Horizontal" />
+                                    <DockPanel x:Name="OzelKoyulukSatiri" Margin="0,20,0,0">
+                                        <TextBlock x:Name="OzelKoyulukYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                        <TextBlock Text="Kart koyuluğu" />
+                                    </DockPanel>
+                                    <Slider x:Name="OzelKoyuluk" Minimum="0" Maximum="90" IsSnapToTickEnabled="True" TickFrequency="1" LargeChange="5" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+
+                <!-- ============ Fanlar ve diskler ============ -->
+                <StackPanel x:Name="SayfaSensorler" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource Baslik}" Text="Fanlar ve diskler" />
+                    <TextBlock Style="{StaticResource Aciklama}" Margin="0,0,0,18"
+                               Text="Soğutma kartında görünecek adlar. Boş bırakırsan sensörün kendi adı kullanılır. Hiç dönmemiş fan yuvaları listelenmez." />
+                    <Border Style="{StaticResource Grup}">
+                        <Grid x:Name="Sensorler" />
+                    </Border>
+                </StackPanel>
+
+                <!-- ============ Başlangıç ve hakkında ============ -->
+                <StackPanel x:Name="SayfaHakkinda" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource Baslik}" Text="Başlangıç ve hakkında" />
+                    <TextBlock Style="{StaticResource Aciklama}" Margin="0,0,0,18" Text=" " />
+                    <Border Style="{StaticResource Grup}">
+                        <StackPanel>
+                            <CheckBox x:Name="Baslangic" Style="{StaticResource Anahtar}">
+                                <TextBlock Text="Windows açılınca başlat" FontWeight="SemiBold" />
+                            </CheckBox>
+                            <TextBlock x:Name="BaslangicNotu" Style="{StaticResource Aciklama}" Margin="0,6,0,0"
+                                       Text="Oturum açılınca yönetici yetkisiyle, UAC sormadan başlar." />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Grup}">
+                        <StackPanel>
+                            <TextBlock x:Name="Surum" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource Aciklama}" Margin="0,6,0,0"
+                                       Text="Kullanılan açık kaynak bileşenler: LibreHardwareMonitor (MPL-2.0), PresentMon (MIT), PawnIO (GPL-2.0). Lisans metinleri kurulum klasöründeki 'lisanslar' klasöründe." />
+                            <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                <Button Content="Günlük dosyasını aç" Click="Gunluk_Click" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Window>

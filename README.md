@@ -1,4 +1,4 @@
-# Sistem Paneli
+# Ayaz HUD
 
 Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, belleği, fanları ve ağı gösteren masaüstü widget'ları. Widget'lar duvar kâğıdının (Wallpaper Engine dahil) üstünde, açık pencerelerin altında durur; arkaları bulanık camdır.
 
@@ -21,11 +21,11 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
 
 ## Kurulum
 
-`SistemPaneli-Kurulum-<sürüm>.exe` dosyasını çalıştır. Kurulum şunları yapar:
+`AyazHUD-Kurulum-<sürüm>.exe` dosyasını çalıştır. Kurulum şunları yapar:
 
-1. Uygulamayı `C:\Program Files\SistemPaneli` klasörüne kurar.
+1. Uygulamayı `C:\Program Files\AyazHUD` klasörüne kurar.
 2. Kurulu değilse [PawnIO](https://github.com/namazso/PawnIO) sürücüsünü kurar. İşlemci sıcaklığı ve anakart fanları bu imzalı sürücüyle okunur.
-3. `SistemPaneli` zamanlanmış görevini oluşturur. Uygulama sensörler ve FPS için yönetici yetkisi ister; bu görev sayesinde her açılışta UAC sormadan başlar.
+3. `AyazHUD` zamanlanmış görevini oluşturur. Uygulama sensörler ve FPS için yönetici yetkisi ister; bu görev sayesinde her açılışta UAC sormadan başlar.
 
 Kurulum dosyası imzasız olduğu için SmartScreen uyarısı çıkabilir: "Ek bilgi" > "Yine de çalıştır".
 
@@ -37,20 +37,20 @@ Gerekenler:
 - [Inno Setup 7](https://jrsoftware.org/isdl.php). Yalnızca kurulum dosyası için gerekir.
 
 ```powershell
-# Derle ve kurulum dosyasını üret (cikti\SistemPaneli-Kurulum-<sürüm>.exe)
+# Derle ve kurulum dosyasını üret (cikti\AyazHUD-Kurulum-<sürüm>.exe)
 powershell -ExecutionPolicy Bypass -File derle.ps1
 
 # Yalnızca uygulamayı derle
-dotnet build src\SistemPaneli\SistemPaneli.csproj -c Debug
+dotnet build src\AyazHUD\AyazHUD.csproj -c Debug
 ```
 
 Geliştirirken yönetici yetkisi olmadan denemek için uygulamayı `--yetkisiz` ile başlat. Bu kipte sıcaklık, fanlar ve FPS okunmaz; arayüz çalışır.
 
 ```powershell
-src\SistemPaneli\bin\Debug\net48\SistemPaneli.exe --yetkisiz
+src\AyazHUD\bin\Debug\net48\AyazHUD.exe --yetkisiz
 ```
 
-Sürüm numarası `src/SistemPaneli/SistemPaneli.csproj` içindeki `<Version>` alanında. Üçüncü taraf dosyalar `bagimliliklar/` klasöründe; kaynakları ve özetleri o klasörün README'sinde.
+Sürüm numarası `src/AyazHUD/AyazHUD.csproj` içindeki `<Version>` alanında. Üçüncü taraf dosyalar `bagimliliklar/` klasöründe; kaynakları ve özetleri o klasörün README'sinde.
 
 ## Nasıl çalışıyor
 
@@ -62,9 +62,9 @@ Sürüm numarası `src/SistemPaneli/SistemPaneli.csproj` içindeki `<Version>` a
 | Widget penceresi | `Widgetlar/WidgetPenceresi.cs` | Saydam, kenarlıksız WPF penceresi. Bulanıklık için `SetWindowCompositionAttribute` kullanılır, çünkü DWM'nin resmi arka planı pencere etkin değilken kayboluyor. Köşeler Windows 11'in kendi yuvarlamasıyla kırpılır. Pencere hep en altta durur, odak çalmaz, kilitliyken tıklamaları arkasına geçirir. |
 | Tasarım | `Arayuz/` | Halka ölçer, çizgi grafik, çubuk, harf aralıklı başlık. Ortak renkler `Tema.cs` içinde. Widget'a göre değişen stil ve renk `Gorunum.cs` içinde; her pencere kendi `Gorunum` örneğini içindeki denetimlere miras olarak verir. |
 | Arka plan buzlanması | `Widgetlar/BuzKatmani.cs` | Monitörü kaplayan, tıklamaları geçiren bulanık pencere. Widget'lar ona bağlı (sahipli) pencereler olduğu için hep onun üstünde kalır. |
-| Ayarlar | `Ayar/Ayarlar.cs`, `AyarPenceresi.xaml` | `%APPDATA%\SistemPaneli\ayarlar.json` |
-| Günlük | `Cekirdek/Gunluk.cs` | `%LOCALAPPDATA%\SistemPaneli\gunluk.txt` |
-| Kurulum | `kurulum/SistemPaneli.iss` | Inno Setup betiği. PawnIO'yu `-install -silent` ile kurar, görevi `--gorev-kur` ile oluşturur. |
+| Ayarlar | `Ayar/Ayarlar.cs`, `AyarPenceresi.xaml` | `%APPDATA%\AyazHUD\ayarlar.json` |
+| Günlük | `Cekirdek/Gunluk.cs` | `%LOCALAPPDATA%\AyazHUD\gunluk.txt` |
+| Kurulum | `kurulum/AyazHUD.iss` | Inno Setup betiği. PawnIO'yu `-install -silent` ile kurar, görevi `--gorev-kur` ile oluşturur. |
 
 Komut satırı seçenekleri:
 
