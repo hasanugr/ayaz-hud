@@ -62,7 +62,7 @@ namespace SistemPaneli.Arayuz
             string metin = Metin ?? "";
             var yazi = new Typeface(YaziTipi ?? Tema.MetinYazi, FontStyles.Normal, Kalinlik, FontStretches.Normal);
             double ppd = VisualTreeHelper.GetDpi(this).PixelsPerDip;
-            var renk = Renk ?? Tema.Baslik;
+            var renk = Renk ?? Gorunum.Al(this).Baslik;
             _harfler = new FormattedText[metin.Length];
             _genislik = 0;
             _yukseklik = new FormattedText("Ğ", Bicim.Tr, FlowDirection.LeftToRight, yazi, Boyut, renk, ppd).Height;

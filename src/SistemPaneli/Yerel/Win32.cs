@@ -104,10 +104,11 @@ namespace SistemPaneli.Yerel
 
         public static void CamAyarla(IntPtr hwnd, AccentState durum, uint renkAbgr)
         {
+            // AccentFlags = 2 akrilikte tonun saydamlığını yok sayıp pencereyi opak yapıyor; 0 kullanılır
             var politika = new AccentPolicy
             {
                 AccentState = durum,
-                AccentFlags = durum == AccentState.Akrilik ? 2 : 0,
+                AccentFlags = 0,
                 GradientColor = renkAbgr,
             };
             int boyut = Marshal.SizeOf(politika);
@@ -129,6 +130,7 @@ namespace SistemPaneli.Yerel
         public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
         public const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
         public const int DWMWA_BORDER_COLOR = 34;
+        public const int DWMWCP_DONOTROUND = 1;
         public const int DWMWCP_ROUND = 2;
         public const int DWMWA_COLOR_NONE = unchecked((int)0xFFFFFFFE);
 

@@ -13,13 +13,20 @@ namespace SistemPaneli.Ayar
     [DataContract]
     internal sealed class Ayarlar
     {
+        // ---------- Bütün widget'ların varsayılan görünümü ----------
         [DataMember(Order = 1)] public string Vurgu { get; set; }
         /// <summary>Kart zemininin koyuluğu (0–0,9).</summary>
         [DataMember(Order = 2)] public double Koyuluk { get; set; }
-        [DataMember(Order = 3)] public bool Bulaniklik { get; set; }
-        [DataMember(Order = 4)] public List<WidgetAyari> Widgetlar { get; set; }
+        /// <summary>Kart stili: Bulanik, Akrilik, Koyu, Seffaf (bkz. Arayuz.KartStili).</summary>
+        [DataMember(Order = 3)] public string Stil { get; set; }
+
+        // ---------- Arka plan buzlanması: widget'ların olduğu ekranın tamamını bulanıklaştırır ----------
+        [DataMember(Order = 4)] public bool ArkaPlanBuzu { get; set; }
+        [DataMember(Order = 5)] public double ArkaPlanKoyuluk { get; set; }
+
+        [DataMember(Order = 6)] public List<WidgetAyari> Widgetlar { get; set; }
         /// <summary>Fan ve disklere verilen adlar ve gizlenenler (anahtar: sensör kimliği).</summary>
-        [DataMember(Order = 5)] public List<SensorEtiketi> Etiketler { get; set; }
+        [DataMember(Order = 7)] public List<SensorEtiketi> Etiketler { get; set; }
 
         public Ayarlar() => Varsayilanlar();
 
@@ -31,7 +38,9 @@ namespace SistemPaneli.Ayar
         {
             Vurgu = "#7DD3FC";
             Koyuluk = 0.45;
-            Bulaniklik = true;
+            Stil = "Bulanik";
+            ArkaPlanBuzu = false;
+            ArkaPlanKoyuluk = 0.2;
             Widgetlar = new List<WidgetAyari>();
             Etiketler = new List<SensorEtiketi>();
         }
@@ -114,6 +123,12 @@ namespace SistemPaneli.Ayar
         /// <summary>Monitörün sol üst köşesine göre fiziksel piksel.</summary>
         [DataMember(Order = 4)] public int X { get; set; }
         [DataMember(Order = 5)] public int Y { get; set; }
+
+        /// <summary>true ise aşağıdaki görünüm kullanılır; false ise genel görünüm.</summary>
+        [DataMember(Order = 6)] public bool OzelGorunum { get; set; }
+        [DataMember(Order = 7)] public string Stil { get; set; }
+        [DataMember(Order = 8)] public string Vurgu { get; set; }
+        [DataMember(Order = 9)] public double Koyuluk { get; set; }
     }
 
     [DataContract]

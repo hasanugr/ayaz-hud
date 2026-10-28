@@ -14,8 +14,14 @@ namespace SistemPaneli.Widgetlar
             Deger.Foreground = Tema.Metin;
             Bos.FontFamily = Tema.MetinYazi;
             Bos.Foreground = Tema.Soluk;
-            Parilti.Color = Tema.VurguRengi;
-            Tema.Degisti += () => Parilti.Color = Tema.VurguRengi;
+            Gorunum g = null;
+            Loaded += (s, e) =>
+            {
+                if (g != null) return;
+                g = Gorunum.Al(this);
+                Parilti.Color = g.VurguRengi;
+                g.Degisti += () => Parilti.Color = g.VurguRengi;
+            };
         }
 
         public void Guncelle(Anlik a)

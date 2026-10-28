@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using SistemPaneli.Arayuz;
 using SistemPaneli.Ayar;
 using SistemPaneli.Cekirdek;
 using SistemPaneli.Yerel;
@@ -79,8 +80,68 @@ namespace SistemPaneli.Widgetlar
             else if (!acik && _pencereler.TryGetValue(kimlik, out var p))
             {
                 p.Hide();
+                BuzUygula();
             }
             _kaydet();
+        }
+
+        // ---------- Görünüm ----------
+
+        /// <summary>Ayarlardaki genel ve widget'a özel görünümü pencerelere ve arka plan katmanına uygular.</summary>
+        public void GorunumleriUygula()
+        {
+            foreach (var p in _pencereler.Values) GorunumUygula(p);
+            BuzUygula();
+        }
+
+        void GorunumUygula(WidgetPenceresi p)
+        {
+            var w = _ayarlar.Widget(p.Kimlik);
+            bool ozel = w.OzelGorunum;
+            if (!Tema.RenkCoz(ozel ? w.Vurgu : null, out var renk) && !Tema.RenkCoz(_ayarlar.Vurgu, out renk)) renk = Tema.VarsayilanVurgu;
+            p.Gorunum.Uygula(renk, ozel ? w.Koyuluk : _ayarlar.Koyuluk, Gorunum.StilCoz(ozel ? w.Stil : _ayarlar.Stil));
+        }
+
+        readonly List<BuzKatmani> _buzlar = new List<BuzKatmani>();
+
+        /// <summary>Arka plan buzlanması açıksa widget'ların bulunduğu her monitöre bir buz katmanı koyar.</summary>
+        void BuzUygula()
+        {
+            var acik = _pencereler.Values.Where(p => p.IsVisible).ToList();
+            var ekranlar = Ekran.Hepsi();
+            var gereken = !_ayarlar.ArkaPlanBuzu ? new List<Ekran>() : acik
+                .Select(p =>
+                {
+                    var r = p.Dikdortgen;
+                    return Ekran.Iceren(ekranlar, r.Left + r.Genislik / 2, r.Top + r.Yukseklik / 2);
+                })
+                .Where(e => e != null).GroupBy(e => e.Ad).Select(g => g.First()).ToList();
+
+            // Katman kapanınca sahipli pencereler de kapanır; önce widget'lar ayrılır
+            foreach (var p in acik) p.Owner = null;
+            foreach (var b in _buzlar.Where(b => gereken.All(e => e.Ad != b.EkranAdi)).ToList())
+            {
+                b.Close();
+                _buzlar.Remove(b);
+            }
+            foreach (var e in gereken)
+            {
+                var b = _buzlar.FirstOrDefault(x => x.EkranAdi == e.Ad);
+                if (b == null)
+                {
+                    b = new BuzKatmani(e, _ayarlar.ArkaPlanKoyuluk);
+                    _buzlar.Add(b);
+                    b.Show();
+                }
+                b.Koyuluk = _ayarlar.ArkaPlanKoyuluk;
+                b.Yerlestir(e);
+            }
+            foreach (var p in acik)
+            {
+                var r = p.Dikdortgen;
+                var e = Ekran.Iceren(ekranlar, r.Left + r.Genislik / 2, r.Top + r.Yukseklik / 2);
+                p.Owner = _buzlar.FirstOrDefault(b => b.EkranAdi == e?.Ad);
+            }
         }
 
         public void Guncelle(Anlik a)
@@ -99,11 +160,6 @@ namespace SistemPaneli.Widgetlar
             }
         }
 
-        public void CamUygula()
-        {
-            foreach (var p in _pencereler.Values) p.CamUygula();
-        }
-
         public void KonumlariSifirla()
         {
             foreach (var w in _ayarlar.Widgetlar) w.Monitor = null;
@@ -113,14 +169,21 @@ namespace SistemPaneli.Widgetlar
 
         public void Kapat()
         {
-            foreach (var p in _pencereler.Values) p.Close();
+            foreach (var p in _pencereler.Values)
+            {
+                p.Owner = null;
+                p.Close();
+            }
             _pencereler.Clear();
+            foreach (var b in _buzlar) b.Close();
+            _buzlar.Clear();
         }
 
         WidgetPenceresi Pencere(Tanim t)
         {
             if (_pencereler.TryGetValue(t.Kimlik, out var p)) return p;
             p = new WidgetPenceresi(t.Kimlik, t.Olustur(), t.Kart) { Opacity = 0 };
+            GorunumUygula(p);
             p.Tasindi += Tasindi;
             p.EkranlarDegisti += () =>
             {
@@ -165,6 +228,7 @@ namespace SistemPaneli.Widgetlar
                     else p.Opacity = 1;
                 }
             }
+            BuzUygula();
         }
 
         Dictionary<string, (int X, int Y)> VarsayilanKonumlar(List<Ekran> ekranlar)
@@ -222,6 +286,8 @@ namespace SistemPaneli.Widgetlar
             w.X = r.Left + dx - ekran.Alan.Left;
             w.Y = r.Top + dy - ekran.Alan.Top;
             _kaydet();
+            // Başka monitöre taşındıysa buz katmanı da onu izlesin
+            if (_ayarlar.ArkaPlanBuzu) BuzUygula();
         }
     }
 }

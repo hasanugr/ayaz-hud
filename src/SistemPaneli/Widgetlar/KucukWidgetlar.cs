@@ -30,7 +30,7 @@ namespace SistemPaneli.Widgetlar
             _saat.FontSize = 102.4;
             _saat.FontWeight = FontWeights.Light;
             _saniye.FontSize = 32;
-            _saniye.Foreground = Tema.Baslik;
+            Loaded += (s, e) => _saniye.Foreground = Gorunum.Al(this).Baslik;
             ana.Inlines.Add(_saat);
             ana.Inlines.Add(new Run("  ") { FontSize = 16 });
             ana.Inlines.Add(_saniye);

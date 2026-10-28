@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using SistemPaneli.Arayuz;
 using SistemPaneli.Cekirdek;
@@ -37,6 +38,8 @@ namespace SistemPaneli.Widgetlar
         public string Kimlik { get; }
         public IWidget Icerik { get; }
         public bool Kartli { get; }
+        /// <summary>Bu widget'ın stili ve renkleri; içindeki denetimler de bunu kullanır.</summary>
+        public Gorunum Gorunum { get; } = new Gorunum();
         public IntPtr Tutamac { get; private set; }
 
         /// <summary>Kullanıcı sürükleyip bıraktığında.</summary>
@@ -45,7 +48,9 @@ namespace SistemPaneli.Widgetlar
         public event Action EkranlarDegisti;
 
         readonly Grid _kok;
+        readonly FrameworkElement _icerikOgesi;
         readonly Rectangle _duzenlemeCercevesi;
+        readonly DropShadowEffect _yaziGolgesi = new DropShadowEffect { Color = Colors.Black, Opacity = 0.6, BlurRadius = 10, ShadowDepth = 1, Direction = 270 };
         bool _duzenleme, _surukleniyor;
         (int X, int Y)? _hedef;
 
@@ -67,8 +72,16 @@ namespace SistemPaneli.Widgetlar
             UseLayoutRounding = true;
             TextOptions.SetTextRenderingMode(this, TextRenderingMode.Grayscale);
 
+            // İçerikteki denetimler görünümü bu miras alınan özellikten bulur
+            Gorunum.Ata(this, Gorunum);
+            Gorunum.Degisti += () =>
+            {
+                CamUygula();
+                GolgeUygula();
+            };
+
             _kok = new Grid();
-            var icerikOgesi = (FrameworkElement)icerik;
+            _icerikOgesi = (FrameworkElement)icerik;
             if (kartli)
             {
                 _kok.Width = KartGenisligi;
@@ -76,8 +89,8 @@ namespace SistemPaneli.Widgetlar
                 {
                     CornerRadius = new CornerRadius(KoseYaricapi),
                     BorderThickness = new Thickness(1),
-                    BorderBrush = Tema.KartCizgi,
-                    Background = Tema.KartZemin,
+                    BorderBrush = Gorunum.KartCizgi,
+                    Background = Gorunum.KartZemin,
                 });
                 // Üst kenarda vurgu renginde ince parıltı
                 _kok.Children.Add(new Rectangle
@@ -85,17 +98,17 @@ namespace SistemPaneli.Widgetlar
                     Height = 1,
                     VerticalAlignment = VerticalAlignment.Top,
                     Margin = new Thickness(20.8, 0, 20.8, 0),
-                    Fill = Tema.UstParilti,
+                    Fill = Gorunum.UstParilti,
                 });
-                icerikOgesi.Margin = new Thickness(20.8, 18.4, 20.8, 19.2);
+                _icerikOgesi.Margin = new Thickness(20.8, 18.4, 20.8, 19.2);
             }
-            _kok.Children.Add(icerikOgesi);
+            _kok.Children.Add(_icerikOgesi);
 
             _duzenlemeCercevesi = new Rectangle
             {
                 RadiusX = kartli ? KoseYaricapi : 10,
                 RadiusY = kartli ? KoseYaricapi : 10,
-                Stroke = Tema.Vurgu,
+                Stroke = Gorunum.Vurgu,
                 StrokeThickness = 1.5,
                 StrokeDashArray = new DoubleCollection { 4, 3 },
                 Visibility = Visibility.Collapsed,
@@ -119,12 +132,12 @@ namespace SistemPaneli.Widgetlar
             Win32.ExStilDegistir(Tutamac, Win32.WS_EX_TOOLWINDOW | Win32.WS_EX_NOACTIVATE, Win32.WS_EX_APPWINDOW);
             if (Kartli && Windows11)
             {
-                int yuvarlak = Win32.DWMWCP_ROUND, cizgiYok = Win32.DWMWA_COLOR_NONE;
-                Win32.DwmSetWindowAttribute(Tutamac, Win32.DWMWA_WINDOW_CORNER_PREFERENCE, ref yuvarlak, sizeof(int));
+                int cizgiYok = Win32.DWMWA_COLOR_NONE;
                 Win32.DwmSetWindowAttribute(Tutamac, Win32.DWMWA_BORDER_COLOR, ref cizgiYok, sizeof(int));
             }
             HwndSource.FromHwnd(Tutamac).AddHook(PencereIslemi);
             CamUygula();
+            GolgeUygula();
             DuzenlemeUygula();
         }
 
@@ -151,11 +164,29 @@ namespace SistemPaneli.Widgetlar
             return IntPtr.Zero;
         }
 
-        public void CamUygula()
+        void CamUygula()
         {
             if (Tutamac == IntPtr.Zero || !Kartli) return;
-            // Renk tonu WPF tarafında (yuvarlak, kenar yumuşatmalı) verildiği için akriliğin kendi tonu neredeyse şeffaf
-            Win32.CamAyarla(Tutamac, Tema.Cam ? Win32.AccentState.Bulanik : Win32.AccentState.Kapali, 0x01000000);
+            var durum = Gorunum.Stil == KartStili.Bulanik ? Win32.AccentState.Bulanik
+                      : Gorunum.Stil == KartStili.Akrilik ? Win32.AccentState.Akrilik
+                      : Win32.AccentState.Kapali;
+            // Koyu ton WPF tarafında (kenar yumuşatmalı) verilir; bulanıklığın kendi tonu neredeyse şeffaf.
+            // Akrilikte hafif beyaz ton buzlu, açık bir görünüm verir.
+            Win32.CamAyarla(Tutamac, durum, durum == Win32.AccentState.Akrilik ? 0x14FFFFFFu : 0x01000000u);
+            if (Windows11)
+            {
+                // Köşe yuvarlaması yalnızca bulanıklığı kırpmak için; bulanıklık yokken Windows yuvarlak
+                // pencerenin altına açık renkli bir yüzey çizdiği için kapatılır
+                int kose = durum == Win32.AccentState.Kapali ? Win32.DWMWCP_DONOTROUND : Win32.DWMWCP_ROUND;
+                Win32.DwmSetWindowAttribute(Tutamac, Win32.DWMWA_WINDOW_CORNER_PREFERENCE, ref kose, sizeof(int));
+            }
+        }
+
+        /// <summary>Şeffaf kartta zemin olmadığı için yazılar duvar kâğıdından gölgeyle ayrılır.</summary>
+        void GolgeUygula()
+        {
+            if (!Kartli) return;
+            _icerikOgesi.Effect = Gorunum.Stil == KartStili.Seffaf ? _yaziGolgesi : null;
         }
 
         public bool Duzenleme

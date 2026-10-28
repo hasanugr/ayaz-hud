@@ -26,7 +26,7 @@ namespace SistemPaneli.Arayuz
             nameof(IcOran), typeof(double), typeof(HalkaOlcer), new PropertyMetadata(0.0, (d, e) => ((HalkaOlcer)d).YaylariGuncelle()));
 
         public static readonly DependencyProperty RenkProperty = DependencyProperty.Register(
-            nameof(Renk), typeof(Color), typeof(HalkaOlcer), new PropertyMetadata(Tema.VurguRengi, (d, e) => ((HalkaOlcer)d).RenkUygula((Color)e.NewValue)));
+            nameof(Renk), typeof(Color), typeof(HalkaOlcer), new PropertyMetadata(Tema.VarsayilanVurgu, (d, e) => ((HalkaOlcer)d).RenkUygula((Color)e.NewValue)));
 
         public double DisOran { get => (double)GetValue(DisOranProperty); set => SetValue(DisOranProperty, value); }
         public double IcOran { get => (double)GetValue(IcOranProperty); set => SetValue(IcOranProperty, value); }
@@ -36,9 +36,10 @@ namespace SistemPaneli.Arayuz
 
         readonly Zemin _zemin;
         readonly Path _icDolgu, _disDolgu;
-        readonly SolidColorBrush _disFirca = new SolidColorBrush(Tema.VurguRengi);
-        readonly DropShadowEffect _parilti = new DropShadowEffect { ShadowDepth = 0, BlurRadius = 10, Opacity = 0.85, Color = Tema.VurguRengi };
-        bool _sicaklikVar;
+        readonly SolidColorBrush _disFirca = new SolidColorBrush(Tema.VarsayilanVurgu);
+        readonly DropShadowEffect _parilti = new DropShadowEffect { ShadowDepth = 0, BlurRadius = 10, Opacity = 0.85, Color = Tema.VarsayilanVurgu };
+        double? _sicaklik;
+        Gorunum _gorunum;
 
         public HalkaOlcer()
         {
@@ -50,9 +51,12 @@ namespace SistemPaneli.Arayuz
             Children.Add(_icDolgu);
             Children.Add(_disDolgu);
             SizeChanged += (s, e) => YaylariGuncelle();
-            Tema.Degisti += () =>
+            // Sıcaklık yokken halka vurgu renginde; widget'ın vurgu rengi değişince ona uyar
+            Loaded += (s, e) =>
             {
-                if (!_sicaklikVar) RenkUygula(Tema.VurguRengi);
+                if (_gorunum != null) return;
+                _gorunum = Gorunum.Al(this);
+                _gorunum.Degisti += () => Canlandirma.Renk(this, RenkProperty, Tema.SicaklikRengi(_sicaklik, _gorunum.VurguRengi), false);
             };
         }
 
@@ -60,10 +64,10 @@ namespace SistemPaneli.Arayuz
         public void Ayarla(double? sicaklik, double? yuk, double ustSinir = 95)
         {
             _zemin.Sicaklik = Bicim.Sayi(sicaklik);
-            _sicaklikVar = sicaklik != null;
+            _sicaklik = sicaklik;
             bool canli = Canlandirma.Sayi(this, DisOranProperty, sicaklik == null ? 0 : Math.Min(1, Math.Max(0, sicaklik.Value / ustSinir)), GecisEsigi);
             Canlandirma.Sayi(this, IcOranProperty, yuk == null ? 0 : Math.Min(1, Math.Max(0, yuk.Value / 100)), GecisEsigi);
-            Canlandirma.Renk(this, RenkProperty, Tema.SicaklikRengi(sicaklik), canli);
+            Canlandirma.Renk(this, RenkProperty, Tema.SicaklikRengi(sicaklik, Gorunum.Al(this).VurguRengi), canli);
         }
 
         void RenkUygula(Color renk)

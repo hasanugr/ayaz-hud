@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using SistemPaneli.Arayuz;
 using SistemPaneli.Ayar;
@@ -16,19 +17,16 @@ using SistemPaneli.Yerel;
 
 namespace SistemPaneli
 {
-    /// <summary>Ayarlar penceresi. Her değişiklik hemen uygulanır ve kısa bir gecikmeyle kaydedilir.</summary>
+    /// <summary>Ayarlar penceresi. Her değişiklik widget'lara hemen uygulanır ve kısa bir gecikmeyle kaydedilir.</summary>
     internal partial class AyarPenceresi : Window
     {
-        static readonly (string Ad, string Renk)[] HazirRenkler =
-        {
-            ("Buz mavisi", "#7DD3FC"), ("Nane", "#6EE7B7"), ("Lavanta", "#C4B5FD"), ("Pembe", "#F9A8D4"),
-            ("Şeftali", "#FDBA74"), ("Limon", "#FDE68A"), ("Mercan", "#FCA5A5"), ("Gümüş", "#E2E8F0"),
-        };
-
         readonly App _uygulama;
         readonly Ayarlar _ayarlar;
         readonly WidgetYoneticisi _widgetlar;
-        readonly List<(Ellipse Halka, string Renk)> _renkHalkalari = new List<(Ellipse, string)>();
+
+        StilSecici _genelStil, _ozelStil;
+        RenkSecici _genelRenk, _ozelRenk;
+        string _seciliWidget;
         bool _yukleniyor = true;
 
         public AyarPenceresi(App uygulama, Ayarlar ayarlar, WidgetYoneticisi widgetlar)
@@ -37,77 +35,17 @@ namespace SistemPaneli
             _ayarlar = ayarlar;
             _widgetlar = widgetlar;
             InitializeComponent();
-            Icon = Imaging.CreateBitmapSourceFromHIcon(Tepsi.Simge().Handle, Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+            var simge = Imaging.CreateBitmapSourceFromHIcon(Tepsi.Simge().Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            Icon = simge;
+            Logo.Source = simge;
+            SurumYazisi.Text = "Sürüm " + App.Surum;
 
-            // Görünüm
-            foreach (var (ad, renk) in HazirRenkler)
-            {
-                Tema.RenkCoz(renk, out var c);
-                var halka = new Ellipse { Width = 34, Height = 34, StrokeThickness = 2, Stroke = Brushes.Transparent };
-                var dugme = new Button
-                {
-                    ToolTip = ad,
-                    Margin = new Thickness(0, 0, 6, 0),
-                    Padding = new Thickness(0),
-                    Template = DaireSablonu(),
-                    Content = new Grid { Children = { halka, new Ellipse { Width = 24, Height = 24, Fill = new SolidColorBrush(c) } } },
-                };
-                string secilen = renk;
-                dugme.Click += (s, e) => RenkSec(secilen);
-                _renkHalkalari.Add((halka, renk));
-                Renkler.Items.Add(dugme);
-            }
-            RenkKutusu.Text = _ayarlar.Vurgu;
-            RenkKutusu.TextChanged += (s, e) =>
-            {
-                if (!_yukleniyor && Tema.RenkCoz(RenkKutusu.Text.Trim(), out _)) RenkSec(RenkKutusu.Text.Trim(), false);
-            };
-            RenkHalkalariniGuncelle();
-
-            Koyuluk.Value = Math.Round(_ayarlar.Koyuluk * 100);
-            KoyulukDegeri.Text = $"%{Koyuluk.Value:0}";
-            Koyuluk.ValueChanged += (s, e) =>
-            {
-                KoyulukDegeri.Text = $"%{Koyuluk.Value:0}";
-                if (_yukleniyor) return;
-                _ayarlar.Koyuluk = Koyuluk.Value / 100;
-                Uygula();
-            };
-            Bulaniklik.IsChecked = _ayarlar.Bulaniklik;
-            Bulaniklik.Click += (s, e) =>
-            {
-                _ayarlar.Bulaniklik = Bulaniklik.IsChecked == true;
-                Uygula();
-            };
-
-            // Widget'lar
-            foreach (var t in _widgetlar.Tanimlar)
-            {
-                string kimlik = t.Kimlik;
-                var kutu = new CheckBox { Content = t.Ad, IsChecked = _widgetlar.AcikMi(kimlik) };
-                kutu.Click += (s, e) => _widgetlar.Ac(kimlik, kutu.IsChecked == true);
-                WidgetKutulari.Children.Add(kutu);
-            }
-            DuzenleDugmesiYaz();
-
+            GorunumSayfasi();
+            WidgetSayfasi();
             SensorListesi(_uygulama.SonAnlik);
+            HakkindaSayfasi();
 
-            // Başlangıç
-            bool? baslangic = _uygulama.BaslangictaMi();
-            Baslangic.IsChecked = baslangic == true;
-            Baslangic.IsEnabled = baslangic != null;
-            if (baslangic == null)
-            {
-                BaslangicNotu.Visibility = Visibility.Visible;
-                BaslangicNotu.Text = "Bu ayar, uygulama kurulum dosyasıyla kurulduğunda ve yönetici yetkisiyle çalışırken değiştirilebilir.";
-            }
-            Baslangic.Click += (s, e) =>
-            {
-                _uygulama.BaslangicDegistir();
-                Baslangic.IsChecked = _uygulama.BaslangictaMi() == true;
-            };
-
-            Surum.Text = $"Sistem Paneli {App.Surum}";
+            Menu.SelectedIndex = 0;
             Closed += (s, e) => _uygulama.AyarlarDegisti();
             // Düzenleme tepsi menüsünden de açılıp kapanabiliyor
             Activated += (s, e) => DuzenleDugmesiYaz();
@@ -122,41 +60,146 @@ namespace SistemPaneli
             Win32.DwmSetWindowAttribute(new WindowInteropHelper(this).Handle, Win32.DWMWA_USE_IMMERSIVE_DARK_MODE, ref evet, sizeof(int));
         }
 
+        void Menu_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string sayfa = (Menu.SelectedItem as ListBoxItem)?.Tag as string;
+            SayfaGorunum.Visibility = sayfa == "Gorunum" ? Visibility.Visible : Visibility.Collapsed;
+            SayfaWidgetlar.Visibility = sayfa == "Widgetlar" ? Visibility.Visible : Visibility.Collapsed;
+            SayfaSensorler.Visibility = sayfa == "Sensorler" ? Visibility.Visible : Visibility.Collapsed;
+            SayfaHakkinda.Visibility = sayfa == "Hakkinda" ? Visibility.Visible : Visibility.Collapsed;
+            if (sayfa == "Sensorler") SensorListesi(_uygulama.SonAnlik);
+        }
+
+        /// <summary>Değişikliği widget'lara uygular ve kaydı tetikler.</summary>
         void Uygula()
         {
+            if (_yukleniyor) return;
             _uygulama.TemaUygula();
             _uygulama.AyarlarDegisti();
+            _genelStil?.Yenile();
+            _ozelStil?.Yenile();
+            BuzOnizlemeYenile();
         }
 
-        void RenkSec(string renk, bool kutuyuYaz = true)
+        static Color Renk(string metin) => Tema.RenkCoz(metin, out var c) ? c : Tema.VarsayilanVurgu;
+
+        // ---------- Görünüm ----------
+
+        void GorunumSayfasi()
         {
-            _ayarlar.Vurgu = renk.ToUpperInvariant();
-            if (kutuyuYaz)
+            _genelStil = new StilSecici(GenelStiller,
+                () => Gorunum.StilCoz(_ayarlar.Stil),
+                s => { _ayarlar.Stil = s.ToString(); Uygula(); },
+                () => (Renk(_ayarlar.Vurgu), _ayarlar.Koyuluk));
+            _genelRenk = new RenkSecici(GenelRenkler, () => _ayarlar.Vurgu, r => { _ayarlar.Vurgu = r; Uygula(); });
+
+            KaydiriciBagla(GenelKoyuluk, GenelKoyulukYazisi, () => _ayarlar.Koyuluk, v => _ayarlar.Koyuluk = v);
+            KaydiriciBagla(BuzKoyuluk, BuzKoyulukYazisi, () => _ayarlar.ArkaPlanKoyuluk, v => _ayarlar.ArkaPlanKoyuluk = v);
+
+            Buzlanma.IsChecked = _ayarlar.ArkaPlanBuzu;
+            Buzlanma.Click += (s, e) =>
             {
-                _yukleniyor = true;
-                RenkKutusu.Text = _ayarlar.Vurgu;
-                _yukleniyor = false;
-            }
-            RenkHalkalariniGuncelle();
-            Uygula();
+                _ayarlar.ArkaPlanBuzu = Buzlanma.IsChecked == true;
+                Uygula();
+            };
+            BuzOnizlemeYenile();
         }
 
-        void RenkHalkalariniGuncelle()
+        void BuzOnizlemeYenile()
         {
-            foreach (var (halka, renk) in _renkHalkalari)
-                halka.Stroke = string.Equals(renk, _ayarlar.Vurgu, StringComparison.OrdinalIgnoreCase) ? Brushes.White : Brushes.Transparent;
+            BuzOnizleme.Ayarla(Gorunum.StilCoz(_ayarlar.Stil), Renk(_ayarlar.Vurgu), _ayarlar.Koyuluk);
+            BuzOnizleme.Buzlanma(_ayarlar.ArkaPlanBuzu, _ayarlar.ArkaPlanKoyuluk);
+            BuzKoyuluk.IsEnabled = _ayarlar.ArkaPlanBuzu;
         }
 
-        static ControlTemplate DaireSablonu()
+        void KaydiriciBagla(Slider kaydirici, TextBlock yazi, Func<double> oku, Action<double> yaz)
         {
-            var sablon = new ControlTemplate(typeof(Button));
-            var sunucu = new FrameworkElementFactory(typeof(ContentPresenter));
-            sablon.VisualTree = sunucu;
-            return sablon;
+            kaydirici.Value = Math.Round(oku() * 100);
+            yazi.Text = $"%{kaydirici.Value:0}";
+            kaydirici.ValueChanged += (s, e) =>
+            {
+                yazi.Text = $"%{kaydirici.Value:0}";
+                if (_yukleniyor) return;
+                yaz(kaydirici.Value / 100);
+                Uygula();
+            };
+        }
+
+        // ---------- Widget'lar ----------
+
+        void WidgetSayfasi()
+        {
+            foreach (var t in _widgetlar.Tanimlar)
+                WidgetListesi.Items.Add(new ListBoxItem { Content = t.Ad, Tag = t.Kimlik });
+            DuzenleDugmesiYaz();
+
+            WidgetGoster.Click += (s, e) =>
+            {
+                if (_seciliWidget != null) _widgetlar.Ac(_seciliWidget, WidgetGoster.IsChecked == true);
+            };
+            OzelGorunum.Click += (s, e) =>
+            {
+                var w = _ayarlar.Widget(_seciliWidget);
+                w.OzelGorunum = OzelGorunum.IsChecked == true;
+                // İlk açılışta genel görünümden başlasın
+                if (w.OzelGorunum && string.IsNullOrEmpty(w.Stil))
+                {
+                    w.Stil = _ayarlar.Stil;
+                    w.Vurgu = _ayarlar.Vurgu;
+                    w.Koyuluk = _ayarlar.Koyuluk;
+                }
+                WidgetAyarlariniYaz();
+                Uygula();
+            };
+            _ozelStil = new StilSecici(OzelStiller,
+                () => Gorunum.StilCoz(_ayarlar.Widget(_seciliWidget ?? "islemci").Stil),
+                s => { _ayarlar.Widget(_seciliWidget).Stil = s.ToString(); Uygula(); },
+                () =>
+                {
+                    var w = _ayarlar.Widget(_seciliWidget ?? "islemci");
+                    return (Renk(w.Vurgu ?? _ayarlar.Vurgu), w.Koyuluk);
+                });
+            _ozelRenk = new RenkSecici(OzelRenkler, () => _ayarlar.Widget(_seciliWidget ?? "islemci").Vurgu, r => { _ayarlar.Widget(_seciliWidget).Vurgu = r; Uygula(); });
+            OzelKoyuluk.ValueChanged += (s, e) =>
+            {
+                OzelKoyulukYazisi.Text = $"%{OzelKoyuluk.Value:0}";
+                if (_yukleniyor || _seciliWidget == null) return;
+                _ayarlar.Widget(_seciliWidget).Koyuluk = OzelKoyuluk.Value / 100;
+                Uygula();
+            };
+            WidgetListesi.SelectedIndex = 1;
+        }
+
+        void WidgetListesi_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _seciliWidget = (WidgetListesi.SelectedItem as ListBoxItem)?.Tag as string;
+            if (_seciliWidget == null) return;
+            WidgetAyarlariniYaz();
+        }
+
+        /// <summary>Seçili widget'ın ayarlarını sağdaki alana doldurur.</summary>
+        void WidgetAyarlariniYaz()
+        {
+            bool eski = _yukleniyor;
+            _yukleniyor = true;
+            var t = _widgetlar.Tanimlar.First(x => x.Kimlik == _seciliWidget);
+            var w = _ayarlar.Widget(_seciliWidget);
+            WidgetAdi.Text = t.Ad;
+            WidgetGoster.IsChecked = _widgetlar.AcikMi(_seciliWidget);
+            OzelGorunum.IsChecked = w.OzelGorunum;
+            OzelAyarlar.IsEnabled = w.OzelGorunum;
+            OzelAyarlar.Opacity = w.OzelGorunum ? 1 : 0.4;
+            // Saatin kartı yok; yalnızca renk ayarı anlamlı
+            OzelStiller.Visibility = t.Kart ? Visibility.Visible : Visibility.Collapsed;
+            OzelKoyuluk.Value = Math.Round((w.OzelGorunum ? w.Koyuluk : _ayarlar.Koyuluk) * 100);
+            OzelKoyulukYazisi.Text = $"%{OzelKoyuluk.Value:0}";
+            _ozelStil.Yenile();
+            _ozelRenk.Yenile();
+            _yukleniyor = eski;
         }
 
         void DuzenleDugmesiYaz() =>
-            DuzenleDugmesi.Content = _widgetlar.Duzenleme ? "Düzenlemeyi bitir" : "Düzenle (widget'ları taşı)";
+            DuzenleDugmesi.Content = _widgetlar.Duzenleme ? "Düzenlemeyi bitir" : "Düzenle";
 
         void Duzenle_Click(object sender, RoutedEventArgs e)
         {
@@ -166,26 +209,23 @@ namespace SistemPaneli
 
         void Sifirla_Click(object sender, RoutedEventArgs e) => _widgetlar.KonumlariSifirla();
 
-        void Gunluk_Click(object sender, RoutedEventArgs e)
-        {
-            if (File.Exists(Gunluk.Dosya)) Process.Start(new ProcessStartInfo("notepad.exe", $"\"{Gunluk.Dosya}\"") { UseShellExecute = false });
-        }
+        // ---------- Fanlar ve diskler ----------
 
-        /// <summary>Fan ve disklerin ad ve görünürlük satırları.</summary>
         void SensorListesi(Anlik a)
         {
             Sensorler.Children.Clear();
             Sensorler.RowDefinitions.Clear();
+            Sensorler.ColumnDefinitions.Clear();
             Sensorler.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             Sensorler.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            Sensorler.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96) });
+            Sensorler.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
 
             var satirlar = a.Fanlar.Select(f => (f, "RPM")).Concat(a.Diskler.Select(d => (d, "°C"))).ToList();
             if (satirlar.Count == 0)
             {
                 Sensorler.Children.Add(new TextBlock
                 {
-                    Text = a.Hazir ? "Fan ya da disk sıcaklığı bulunamadı (yönetici izni olmadan okunamaz)." : "Sensörler henüz okunmadı; pencereyi birkaç saniye sonra yeniden aç.",
+                    Text = a.Hazir ? "Fan ya da disk sıcaklığı bulunamadı (yönetici izni olmadan okunamaz)." : "Sensörler henüz okunmadı; birkaç saniye sonra yeniden bak.",
                     Foreground = (Brush)FindResource("Soluk"),
                     TextWrapping = TextWrapping.Wrap,
                 });
@@ -196,14 +236,14 @@ namespace SistemPaneli
             {
                 Sensorler.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 var etiket = _ayarlar.Etiket(s.Kimlik);
-                var goster = new CheckBox { IsChecked = etiket?.Gizli != true, ToolTip = "Kartta göster", Margin = new Thickness(0, 0, 10, 8) };
-                var ad = new TextBox { Text = etiket?.Ad ?? "", Margin = new Thickness(0, 0, 10, 8), ToolTip = "Varsayılan: " + s.VarsayilanAd };
+                var goster = new CheckBox { IsChecked = etiket?.Gizli != true, ToolTip = "Kartta göster", Margin = new Thickness(0, 0, 12, 10) };
+                var ad = new TextBox { Text = etiket?.Ad ?? "", Margin = new Thickness(0, 0, 12, 10), ToolTip = "Varsayılan: " + s.VarsayilanAd };
                 var yer = new TextBlock
                 {
                     Text = s.VarsayilanAd,
                     Foreground = new SolidColorBrush(Color.FromArgb(110, 255, 255, 255)),
                     IsHitTestVisible = false,
-                    Margin = new Thickness(9, 0, 0, 8),
+                    Margin = new Thickness(9, 0, 0, 10),
                     VerticalAlignment = VerticalAlignment.Center,
                     Visibility = string.IsNullOrEmpty(ad.Text) ? Visibility.Visible : Visibility.Collapsed,
                 };
@@ -213,7 +253,7 @@ namespace SistemPaneli
                     Foreground = (Brush)FindResource("Soluk"),
                     TextAlignment = TextAlignment.Right,
                     VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(0, 0, 0, 8),
+                    Margin = new Thickness(0, 0, 0, 10),
                 };
                 string kimlik = s.Kimlik;
                 goster.Click += (o, e) =>
@@ -234,6 +274,134 @@ namespace SistemPaneli
                     Sensorler.Children.Add(oge);
                 }
                 i++;
+            }
+        }
+
+        // ---------- Başlangıç ve hakkında ----------
+
+        void HakkindaSayfasi()
+        {
+            bool? baslangic = _uygulama.BaslangictaMi();
+            Baslangic.IsChecked = baslangic == true;
+            Baslangic.IsEnabled = baslangic != null;
+            if (baslangic == null)
+                BaslangicNotu.Text = "Bu ayar, uygulama kurulum dosyasıyla kurulduğunda ve yönetici yetkisiyle çalışırken değiştirilebilir.";
+            Baslangic.Click += (s, e) =>
+            {
+                _uygulama.BaslangicDegistir();
+                Baslangic.IsChecked = _uygulama.BaslangictaMi() == true;
+            };
+            Surum.Text = $"Sistem Paneli {App.Surum}";
+        }
+
+        void Gunluk_Click(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists(Gunluk.Dosya)) Process.Start(new ProcessStartInfo("notepad.exe", $"\"{Gunluk.Dosya}\"") { UseShellExecute = false });
+        }
+
+        // ---------- Yardımcı seçiciler ----------
+
+        /// <summary>Önizlemeli kart stili kutuları.</summary>
+        sealed class StilSecici
+        {
+            readonly List<(KartStili Stil, Border Cerceve, StilOnizleme Onizleme)> _kutular = new List<(KartStili, Border, StilOnizleme)>();
+            readonly Func<KartStili> _secili;
+            readonly Func<(Color Vurgu, double Koyuluk)> _renk;
+
+            public StilSecici(Panel panel, Func<KartStili> secili, Action<KartStili> sec, Func<(Color, double)> renk)
+            {
+                _secili = secili;
+                _renk = renk;
+                foreach (KartStili stil in Enum.GetValues(typeof(KartStili)))
+                {
+                    var onizleme = new StilOnizleme { Width = 132, Height = 82 };
+                    var cerceve = new Border
+                    {
+                        CornerRadius = new CornerRadius(10),
+                        BorderThickness = new Thickness(2),
+                        Padding = new Thickness(3),
+                        Child = new Border { CornerRadius = new CornerRadius(7), ClipToBounds = true, Child = onizleme },
+                    };
+                    var kutu = new StackPanel { Margin = new Thickness(0, 0, 12, 12), Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent };
+                    kutu.Children.Add(cerceve);
+                    kutu.Children.Add(new TextBlock { Text = Gorunum.StilAdi(stil), Margin = new Thickness(4, 6, 0, 0), HorizontalAlignment = HorizontalAlignment.Center });
+                    var s = stil;
+                    kutu.MouseLeftButtonUp += (o, e) => sec(s);
+                    panel.Children.Add(kutu);
+                    _kutular.Add((stil, cerceve, onizleme));
+                }
+                Yenile();
+            }
+
+            public void Yenile()
+            {
+                var secili = _secili();
+                var (vurgu, koyuluk) = _renk();
+                foreach (var (stil, cerceve, onizleme) in _kutular)
+                {
+                    cerceve.BorderBrush = stil == secili ? new SolidColorBrush(vurgu) : new SolidColorBrush(Color.FromRgb(39, 43, 56));
+                    onizleme.Ayarla(stil, vurgu, koyuluk);
+                }
+            }
+        }
+
+        /// <summary>Hazır renkler ve elle renk kodu.</summary>
+        sealed class RenkSecici
+        {
+            static readonly (string Ad, string Renk)[] HazirRenkler =
+            {
+                ("Buz mavisi", "#7DD3FC"), ("Nane", "#6EE7B7"), ("Lavanta", "#C4B5FD"), ("Pembe", "#F9A8D4"),
+                ("Şeftali", "#FDBA74"), ("Limon", "#FDE68A"), ("Mercan", "#FCA5A5"), ("Gümüş", "#E2E8F0"),
+            };
+
+            readonly List<(Ellipse Halka, string Renk)> _halkalar = new List<(Ellipse, string)>();
+            readonly TextBox _kutu = new TextBox { Width = 92, Margin = new Thickness(8, 0, 0, 0), ToolTip = "Kendi rengin (#RRGGBB)" };
+            readonly Func<string> _secili;
+            bool _yaziliyor;
+
+            public RenkSecici(Panel panel, Func<string> secili, Action<string> sec)
+            {
+                _secili = secili;
+                foreach (var (ad, renk) in HazirRenkler)
+                {
+                    Tema.RenkCoz(renk, out var c);
+                    var halka = new Ellipse { Width = 34, Height = 34, StrokeThickness = 2, Stroke = Brushes.Transparent };
+                    var dugme = new Grid { Margin = new Thickness(0, 0, 6, 0), Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent, ToolTip = ad };
+                    dugme.Children.Add(halka);
+                    dugme.Children.Add(new Ellipse { Width = 24, Height = 24, Fill = new SolidColorBrush(c) });
+                    string r = renk;
+                    dugme.MouseLeftButtonUp += (o, e) =>
+                    {
+                        sec(r);
+                        Yenile();
+                    };
+                    _halkalar.Add((halka, renk));
+                    panel.Children.Add(dugme);
+                }
+                _kutu.TextChanged += (o, e) =>
+                {
+                    string metin = _kutu.Text.Trim();
+                    if (_yaziliyor || !Tema.RenkCoz(metin, out var c)) return;
+                    sec(Tema.RenkMetni(c));
+                    Halkalar();
+                };
+                panel.Children.Add(_kutu);
+                Yenile();
+            }
+
+            public void Yenile()
+            {
+                _yaziliyor = true;
+                _kutu.Text = _secili() ?? "";
+                _yaziliyor = false;
+                Halkalar();
+            }
+
+            void Halkalar()
+            {
+                string secili = _secili();
+                foreach (var (halka, renk) in _halkalar)
+                    halka.Stroke = string.Equals(renk, secili, StringComparison.OrdinalIgnoreCase) ? Brushes.White : Brushes.Transparent;
             }
         }
     }

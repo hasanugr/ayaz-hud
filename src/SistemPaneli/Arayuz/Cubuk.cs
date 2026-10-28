@@ -28,7 +28,7 @@ namespace SistemPaneli.Arayuz
             if (dolu < 0.5) return;
             // Çok küçük oranlarda da yuvarlak uç bozulmasın
             dc.PushClip(new RectangleGeometry(new Rect(0, 0, w, h), r, r));
-            dc.DrawRoundedRectangle(Tema.CubukDolgu, null, new Rect(Math.Min(0, dolu - h), 0, Math.Max(dolu, h), h), r, r);
+            dc.DrawRoundedRectangle(Gorunum.Al(this).CubukDolgu, null, new Rect(Math.Min(0, dolu - h), 0, Math.Max(dolu, h), h), r, r);
             dc.Pop();
         }
     }

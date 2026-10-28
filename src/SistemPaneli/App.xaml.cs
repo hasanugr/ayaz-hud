@@ -173,9 +173,9 @@ namespace SistemPaneli
 
         internal void TemaUygula()
         {
-            if (!Tema.RenkCoz(_ayarlar.Vurgu, out var renk)) renk = Tema.VurguRengi;
-            Tema.Uygula(renk, _ayarlar.Koyuluk, _ayarlar.Bulaniklik);
-            _widgetlar?.CamUygula();
+            if (!Tema.RenkCoz(_ayarlar.Vurgu, out var renk)) renk = Tema.VarsayilanVurgu;
+            Tema.GenelVurguYaz(renk);
+            _widgetlar?.GorunumleriUygula();
         }
 
         /// <summary>Ayar değişince kısa bir süre bekleyip kaydeder (kaydırıcı sürüklenirken diske sürekli yazılmasın).</summary>

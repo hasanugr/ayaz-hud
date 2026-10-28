@@ -16,11 +16,7 @@ namespace SistemPaneli.Arayuz
         /// <summary>Grafiğin tepe değeri; boşsa son değerlerin en büyüğüne göre ayarlanır.</summary>
         public double? UstSinir { get; set; }
 
-        public CizgiGrafik()
-        {
-            IsHitTestVisible = false;
-            Tema.Degisti += InvalidateVisual;
-        }
+        public CizgiGrafik() => IsHitTestVisible = false;
 
         public void Ekle(double? deger)
         {
@@ -61,8 +57,9 @@ namespace SistemPaneli.Arayuz
             }
             alan.Freeze();
 
-            dc.DrawGeometry(Tema.GrafikDolgu, null, alan);
-            dc.DrawGeometry(null, new Pen(Tema.Vurgu, 1.6) { LineJoin = PenLineJoin.Round }, cizgi);
+            var g = Gorunum.Al(this);
+            dc.DrawGeometry(g.GrafikDolgu, null, alan);
+            dc.DrawGeometry(null, new Pen(g.Vurgu, 1.6) { LineJoin = PenLineJoin.Round }, cizgi);
         }
     }
 }

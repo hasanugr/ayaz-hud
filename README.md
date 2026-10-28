@@ -12,7 +12,12 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
   - Pompa ve fanlar, disk sıcaklıkları.
   - Ağ hızı.
 - **Donanımı kendisi tanır:** Sensörler ada ve türe göre seçilir, böylece farklı bilgisayarlarda da çalışır. Seçimin özeti günlük dosyasına yazılır.
-- **Düzenleme:** Widget'lar sürüklenir, birbirine hizalanır, açılıp kapatılır. Vurgu rengi, kart koyuluğu ve bulanıklık ayarlardan değişir.
+- **Düzenleme:** Widget'lar sürüklenir, birbirine hizalanır, açılıp kapatılır.
+- **Görünüm:**
+  - Dört kart stili var: buzlu cam, akrilik, koyu ve şeffaf.
+  - Vurgu rengi ve kart koyuluğu bütün widget'lar için ya da her widget için ayrı seçilebilir.
+  - İstenirse widget'ların olduğu ekranın tamamı buzlanır ("arka plan buzlanması").
+  - Ayarlar penceresinde her seçeneğin önizlemesi görünür.
 
 ## Kurulum
 
@@ -55,7 +60,8 @@ Sürüm numarası `src/SistemPaneli/SistemPaneli.csproj` içindeki `<Version>` a
 | Sensörler | `Cekirdek/SensorServisi.cs`, `Cekirdek/DonanimTanima.cs` | LibreHardwareMonitor ayrı bir iş parçacığında saniyede bir okunur. Seçim turlarında bütün donanım okunur, diğer turlarda yalnızca gösterilenler. |
 | FPS | `Cekirdek/FpsOlcer.cs` | PresentMon'un CSV çıktısı okunur. Ön plandaki ya da en yüksek FPS'li süreç oyun sayılır; listedeki tarayıcı, Discord gibi programlar hariç tutulur. PresentMon bir iş nesnesine bağlıdır, uygulama kapanınca o da kapanır. |
 | Widget penceresi | `Widgetlar/WidgetPenceresi.cs` | Saydam, kenarlıksız WPF penceresi. Bulanıklık için `SetWindowCompositionAttribute` kullanılır, çünkü DWM'nin resmi arka planı pencere etkin değilken kayboluyor. Köşeler Windows 11'in kendi yuvarlamasıyla kırpılır. Pencere hep en altta durur, odak çalmaz, kilitliyken tıklamaları arkasına geçirir. |
-| Tasarım | `Arayuz/` | Halka ölçer, çizgi grafik, çubuk, harf aralıklı başlık; renkler `Tema.cs` içinde. |
+| Tasarım | `Arayuz/` | Halka ölçer, çizgi grafik, çubuk, harf aralıklı başlık. Ortak renkler `Tema.cs` içinde. Widget'a göre değişen stil ve renk `Gorunum.cs` içinde; her pencere kendi `Gorunum` örneğini içindeki denetimlere miras olarak verir. |
+| Arka plan buzlanması | `Widgetlar/BuzKatmani.cs` | Monitörü kaplayan, tıklamaları geçiren bulanık pencere. Widget'lar ona bağlı (sahipli) pencereler olduğu için hep onun üstünde kalır. |
 | Ayarlar | `Ayar/Ayarlar.cs`, `AyarPenceresi.xaml` | `%APPDATA%\SistemPaneli\ayarlar.json` |
 | Günlük | `Cekirdek/Gunluk.cs` | `%LOCALAPPDATA%\SistemPaneli\gunluk.txt` |
 | Kurulum | `kurulum/SistemPaneli.iss` | Inno Setup betiği. PawnIO'yu `-install -silent` ile kurar, görevi `--gorev-kur` ile oluşturur. |
