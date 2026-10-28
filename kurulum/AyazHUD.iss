@@ -32,17 +32,31 @@ OutputBaseFilename=AyazHUD-Kurulum-{#Surum}
 SetupIconFile=..\src\AyazHUD\Varliklar\simge.ico
 UninstallDisplayIcon={app}\{#Exe}
 UninstallDisplayName={#Ad}
-InfoBeforeFile=bilgi.txt
 WizardStyle=modern
 Compression=lzma2/max
 SolidCompression=yes
-ShowLanguageDialog=no
+; Dil seçimi: varsayılan Türkçe (listenin ilki); İngilizce seçilebilir ve uygulamanın dili de o olur
+ShowLanguageDialog=yes
+LanguageDetectionMethod=none
 CloseApplications=no
 ; Kaldırırken kullanıcının ayar klasörü silinebilsin
 UsedUserAreasWarning=no
 
 [Languages]
-Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"
+Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"; InfoBeforeFile: "bilgi.txt"
+Name: "en"; MessagesFile: "compiler:Default.isl"; InfoBeforeFile: "bilgi-en.txt"
+
+[CustomMessages]
+tr.PawnIOKuruluyor=PawnIO sürücüsü kuruluyor...
+en.PawnIOKuruluyor=Installing the PawnIO driver...
+tr.GorevKuruluyor=Başlangıç görevi oluşturuluyor...
+en.GorevKuruluyor=Creating the startup task...
+tr.SimdiBaslat=Ayaz HUD'u şimdi başlat
+en.SimdiBaslat=Launch Ayaz HUD now
+tr.AyarlarSilinsin=Widget konumları, renkler ve günlük dosyası da silinsin mi?
+en.AyarlarSilinsin=Also delete widget positions, colors and the log file?
+tr.PawnIOKaldirilmadi=PawnIO sürücüsü kaldırılmadı; başka programlar (LibreHardwareMonitor, FanControl gibi) da kullanıyor olabilir. Kaldırmak istersen Windows Ayarlar > Uygulamalar > Yüklü uygulamalar listesinden "PawnIO"yu kaldırabilirsin.
+en.PawnIOKaldirilmadi=The PawnIO driver was not removed; other apps (such as LibreHardwareMonitor or FanControl) may be using it. To remove it, uninstall "PawnIO" from Windows Settings > Apps > Installed apps.
 
 [Files]
 Source: "{#Kaynak}\{#Exe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -62,9 +76,9 @@ Type: files; Name: "{autoprograms}\Sistem Paneli.lnk"
 Name: "{autoprograms}\{#Ad}"; Filename: "{app}\{#Exe}"
 
 [Run]
-Filename: "{tmp}\PawnIO_setup.exe"; Parameters: "-install -silent"; StatusMsg: "PawnIO sürücüsü kuruluyor..."; Flags: waituntilterminated; Check: PawnIOGerekli
-Filename: "{app}\{#Exe}"; Parameters: "--gorev-kur"; StatusMsg: "Başlangıç görevi oluşturuluyor..."; Flags: runhidden waituntilterminated
-Filename: "{app}\{#Exe}"; Description: "{#Ad}'u şimdi başlat"; Flags: postinstall nowait skipifsilent runasoriginaluser
+Filename: "{tmp}\PawnIO_setup.exe"; Parameters: "-install -silent"; StatusMsg: "{cm:PawnIOKuruluyor}"; Flags: waituntilterminated; Check: PawnIOGerekli
+Filename: "{app}\{#Exe}"; Parameters: "--gorev-kur --dil {language}"; StatusMsg: "{cm:GorevKuruluyor}"; Flags: runhidden waituntilterminated
+Filename: "{app}\{#Exe}"; Description: "{cm:SimdiBaslat}"; Flags: postinstall nowait skipifsilent runasoriginaluser
 
 [Code]
 const
@@ -121,12 +135,11 @@ begin
   end;
   if (CurUninstallStep = usPostUninstall) and not UninstallSilent then
   begin
-    if MsgBox('Widget konumları, renkler ve günlük dosyası da silinsin mi?', mbConfirmation, MB_YESNO) = IDYES then
+    if MsgBox(CustomMessage('AyarlarSilinsin'), mbConfirmation, MB_YESNO) = IDYES then
     begin
       DelTree(ExpandConstant('{userappdata}\AyazHUD'), True, True, True);
       DelTree(ExpandConstant('{localappdata}\AyazHUD'), True, True, True);
     end;
-    MsgBox('PawnIO sürücüsü kaldırılmadı; başka programlar (LibreHardwareMonitor, FanControl gibi) da kullanıyor olabilir. ' +
-           'Kaldırmak istersen Windows Ayarlar > Uygulamalar > Yüklü uygulamalar listesinden "PawnIO"yu kaldırabilirsin.', mbInformation, MB_OK);
+    MsgBox(CustomMessage('PawnIOKaldirilmadi'), mbInformation, MB_OK);
   end;
 end;

@@ -152,8 +152,8 @@ namespace AyazHUD.Arayuz
 
                 double ppd = VisualTreeHelper.GetDpi(this).PixelsPerDip;
                 var sayiYazi = new Typeface(Tema.SayiYazi, FontStyles.Normal, FontWeights.Medium, FontStretches.Normal);
-                var deger = new FormattedText(_sicaklik, Bicim.Tr, FlowDirection.LeftToRight, sayiYazi, 30 * s, Tema.Metin, ppd);
-                var birim = new FormattedText("°C", Bicim.Tr, FlowDirection.LeftToRight, sayiYazi, 11 * s, Tema.Soluk, ppd);
+                var deger = new FormattedText(_sicaklik, Dil.Kultur, FlowDirection.LeftToRight, sayiYazi, 30 * s, Tema.Metin, ppd);
+                var birim = new FormattedText("°C", Dil.Kultur, FlowDirection.LeftToRight, sayiYazi, 11 * s, Tema.Soluk, ppd);
                 double toplam = deger.WidthIncludingTrailingWhitespace + 2 * s + birim.WidthIncludingTrailingWhitespace;
                 double x = m - toplam / 2;
                 dc.DrawText(deger, new Point(x, 62 * s - deger.Baseline));
@@ -161,13 +161,13 @@ namespace AyazHUD.Arayuz
 
                 // "SICAKLIK" etiketi, harf aralığı 0,2em
                 var etiketYazi = new Typeface(Tema.MetinYazi, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
-                const string etiket = "SICAKLIK";
+                string etiket = Dil.M("sicaklik");
                 double boyut = 7.5 * s;
                 var harfler = new FormattedText[etiket.Length];
                 double genislik = 0.2 * boyut * (etiket.Length - 1);
                 for (int i = 0; i < etiket.Length; i++)
                 {
-                    harfler[i] = new FormattedText(etiket[i].ToString(), Bicim.Tr, FlowDirection.LeftToRight, etiketYazi, boyut, Tema.Soluk, ppd);
+                    harfler[i] = new FormattedText(etiket[i].ToString(), Dil.Kultur, FlowDirection.LeftToRight, etiketYazi, boyut, Tema.Soluk, ppd);
                     genislik += harfler[i].WidthIncludingTrailingWhitespace;
                 }
                 x = m - genislik / 2;

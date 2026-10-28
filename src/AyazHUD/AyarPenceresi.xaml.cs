@@ -38,7 +38,7 @@ namespace AyazHUD
             var simge = Imaging.CreateBitmapSourceFromHIcon(Tepsi.Simge().Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
             Icon = simge;
             Logo.Source = simge;
-            SurumYazisi.Text = "Sürüm " + App.Surum;
+            SurumYazisi.Text = string.Format(Dil.M("a.surum"), App.Surum);
 
             GorunumSayfasi();
             WidgetSayfasi();
@@ -119,7 +119,8 @@ namespace AyazHUD
             BuzOnizlemeYenile();
         }
 
-        static readonly string[] BuzlanmaAdlari = { "Kapalı", "Hafif", "Orta", "Güçlü" };
+        // Dil değişebildiği için her seferinde tablodan okunur
+        static string[] BuzlanmaAdlari => new[] { Dil.M("buz.0"), Dil.M("buz.1"), Dil.M("buz.2"), Dil.M("buz.3") };
 
         void BuzOnizlemeYenile()
         {
@@ -145,10 +146,10 @@ namespace AyazHUD
         void KaydiriciBagla(Slider kaydirici, TextBlock yazi, Func<double> oku, Action<double> yaz)
         {
             kaydirici.Value = Math.Round(oku() * 100);
-            yazi.Text = $"%{kaydirici.Value:0}";
+            yazi.Text = Dil.Yuzde($"{kaydirici.Value:0}");
             kaydirici.ValueChanged += (s, e) =>
             {
-                yazi.Text = $"%{kaydirici.Value:0}";
+                yazi.Text = Dil.Yuzde($"{kaydirici.Value:0}");
                 if (_yukleniyor) return;
                 yaz(kaydirici.Value / 100);
                 Uygula();
@@ -197,7 +198,7 @@ namespace AyazHUD
             _ozelRenk = new RenkSecici(OzelRenkler, () => _ayarlar.Widget(_seciliWidget ?? "islemci").Vurgu, r => { _ayarlar.Widget(_seciliWidget).Vurgu = r; Uygula(); });
             OzelKoyuluk.ValueChanged += (s, e) =>
             {
-                OzelKoyulukYazisi.Text = $"%{OzelKoyuluk.Value:0}";
+                OzelKoyulukYazisi.Text = Dil.Yuzde($"{OzelKoyuluk.Value:0}");
                 if (_yukleniyor || _seciliWidget == null) return;
                 _ayarlar.Widget(_seciliWidget).Koyuluk = OzelKoyuluk.Value / 100;
                 Uygula();
@@ -230,7 +231,7 @@ namespace AyazHUD
             OzelKoyulukSatiri.Visibility = kartGorunumu;
             OzelKoyuluk.Visibility = kartGorunumu;
             OzelKoyuluk.Value = Math.Round((w.OzelGorunum ? w.Koyuluk : _ayarlar.Koyuluk) * 100);
-            OzelKoyulukYazisi.Text = $"%{OzelKoyuluk.Value:0}";
+            OzelKoyulukYazisi.Text = Dil.Yuzde($"{OzelKoyuluk.Value:0}");
             OzelBuzlanma.Value = Math.Max(1, w.OzelGorunum ? w.Buzlanma : _ayarlar.Buzlanma);
             OzelBuzlanmaYazisi.Text = BuzlanmaAdlari[(int)OzelBuzlanma.Value];
             BuzlanmaEtkinlikleri();
@@ -240,7 +241,7 @@ namespace AyazHUD
         }
 
         void DuzenleDugmesiYaz() =>
-            DuzenleDugmesi.Content = _widgetlar.Duzenleme ? "Düzenlemeyi bitir" : "Düzenle";
+            DuzenleDugmesi.Content = _widgetlar.Duzenleme ? Dil.M("a.duzenlemeyiBitir") : Dil.M("a.duzenle");
 
         void Duzenle_Click(object sender, RoutedEventArgs e)
         {
@@ -266,7 +267,7 @@ namespace AyazHUD
             {
                 Sensorler.Children.Add(new TextBlock
                 {
-                    Text = a.Hazir ? "Fan ya da disk sıcaklığı bulunamadı (yönetici izni olmadan okunamaz)." : "Sensörler henüz okunmadı; birkaç saniye sonra yeniden bak.",
+                    Text = Dil.M(a.Hazir ? "a.sensorYok" : "a.sensorBekleniyor"),
                     Foreground = (Brush)FindResource("Soluk"),
                     TextWrapping = TextWrapping.Wrap,
                 });
@@ -277,8 +278,8 @@ namespace AyazHUD
             {
                 Sensorler.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 var etiket = _ayarlar.Etiket(s.Kimlik);
-                var goster = new CheckBox { IsChecked = etiket?.Gizli != true, ToolTip = "Kartta göster", Margin = new Thickness(0, 0, 12, 10) };
-                var ad = new TextBox { Text = etiket?.Ad ?? "", Margin = new Thickness(0, 0, 12, 10), ToolTip = "Varsayılan: " + s.VarsayilanAd };
+                var goster = new CheckBox { IsChecked = etiket?.Gizli != true, ToolTip = Dil.M("a.kartta"), Margin = new Thickness(0, 0, 12, 10) };
+                var ad = new TextBox { Text = etiket?.Ad ?? "", Margin = new Thickness(0, 0, 12, 10), ToolTip = string.Format(Dil.M("a.varsayilan"), s.VarsayilanAd) };
                 var yer = new TextBlock
                 {
                     Text = s.VarsayilanAd,
@@ -326,14 +327,26 @@ namespace AyazHUD
             Baslangic.IsChecked = baslangic == true;
             Baslangic.IsEnabled = baslangic != null;
             if (baslangic == null)
-                BaslangicNotu.Text = "Bu ayar, uygulama kurulum dosyasıyla kurulduğunda ve yönetici yetkisiyle çalışırken değiştirilebilir.";
+                BaslangicNotu.Text = Dil.M("a.baslangicKapali");
             Baslangic.Click += (s, e) =>
             {
                 _uygulama.BaslangicDegistir();
                 Baslangic.IsChecked = _uygulama.BaslangictaMi() == true;
             };
             Surum.Text = $"Ayaz HUD {App.Surum}";
+
+            // Seçili dilin düğmesi vurgu renginde çerçeveli
+            var secili = Dil.Kod == Dil.Ingilizce ? DilIngilizce : DilTurkce;
+            secili.BorderBrush = (Brush)FindResource("Vurgu");
+            secili.BorderThickness = new Thickness(2);
         }
+
+        void DilTurkce_Click(object sender, RoutedEventArgs e) => _uygulama.DilDegistir(Dil.Turkce);
+
+        void DilIngilizce_Click(object sender, RoutedEventArgs e) => _uygulama.DilDegistir(Dil.Ingilizce);
+
+        /// <summary>Dil değişince pencere yeniden açılır; kullanıcı aynı sayfada kalsın.</summary>
+        internal void GenelSayfasiniAc() => Menu.SelectedIndex = 3;
 
         void Gunluk_Click(object sender, RoutedEventArgs e)
         {
@@ -391,12 +404,12 @@ namespace AyazHUD
         {
             static readonly (string Ad, string Renk)[] HazirRenkler =
             {
-                ("Buz mavisi", "#7DD3FC"), ("Nane", "#6EE7B7"), ("Lavanta", "#C4B5FD"), ("Pembe", "#F9A8D4"),
-                ("Şeftali", "#FDBA74"), ("Limon", "#FDE68A"), ("Mercan", "#FCA5A5"), ("Gümüş", "#E2E8F0"),
+                ("renk.buz", "#7DD3FC"), ("renk.nane", "#6EE7B7"), ("renk.lavanta", "#C4B5FD"), ("renk.pembe", "#F9A8D4"),
+                ("renk.seftali", "#FDBA74"), ("renk.limon", "#FDE68A"), ("renk.mercan", "#FCA5A5"), ("renk.gumus", "#E2E8F0"),
             };
 
             readonly List<(Ellipse Halka, string Renk)> _halkalar = new List<(Ellipse, string)>();
-            readonly TextBox _kutu = new TextBox { Width = 92, Margin = new Thickness(8, 0, 0, 0), ToolTip = "Kendi rengin (#RRGGBB)" };
+            readonly TextBox _kutu = new TextBox { Width = 92, Margin = new Thickness(8, 0, 0, 0), ToolTip = Dil.M("renk.ozel") };
             readonly Func<string> _secili;
             bool _yaziliyor;
 
@@ -407,7 +420,7 @@ namespace AyazHUD
                 {
                     Tema.RenkCoz(renk, out var c);
                     var halka = new Ellipse { Width = 34, Height = 34, StrokeThickness = 2, Stroke = Brushes.Transparent };
-                    var dugme = new Grid { Margin = new Thickness(0, 0, 6, 0), Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent, ToolTip = ad };
+                    var dugme = new Grid { Margin = new Thickness(0, 0, 6, 0), Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent, ToolTip = Dil.M(ad) };
                     dugme.Children.Add(halka);
                     dugme.Children.Add(new Ellipse { Width = 24, Height = 24, Fill = new SolidColorBrush(c) });
                     string r = renk;

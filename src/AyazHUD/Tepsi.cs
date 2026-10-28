@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
+using AyazHUD.Arayuz;
 using AyazHUD.Widgetlar;
 
 namespace AyazHUD
@@ -25,9 +26,9 @@ namespace AyazHUD
             menu.Items.Add(baslik);
             menu.Items.Add(new ToolStripSeparator());
 
-            _duzenle = new ToolStripMenuItem("Düzenle (widget'ları sürükle)", null, (s, e) => _uygulama.DuzenlemeDegistir());
+            _duzenle = new ToolStripMenuItem(Dil.M("t.duzenle"), null, (s, e) => _uygulama.DuzenlemeDegistir());
             menu.Items.Add(_duzenle);
-            _widgetMenusu = new ToolStripMenuItem("Widget'lar");
+            _widgetMenusu = new ToolStripMenuItem(Dil.M("t.widgetlar"));
             ((ToolStripDropDownMenu)_widgetMenusu.DropDown).ShowImageMargin = false;
             ((ToolStripDropDownMenu)_widgetMenusu.DropDown).ShowCheckMargin = true;
             foreach (var t in widgetlar.Tanimlar)
@@ -38,13 +39,13 @@ namespace AyazHUD
                 _widgetMenusu.DropDownItems.Add(oge);
             }
             menu.Items.Add(_widgetMenusu);
-            menu.Items.Add("Konumları sıfırla", null, (s, e) => _widgetlar.KonumlariSifirla());
+            menu.Items.Add(Dil.M("t.sifirla"), null, (s, e) => _widgetlar.KonumlariSifirla());
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("Ayarlar…", null, (s, e) => _uygulama.AyarlariAc());
-            _baslangic = new ToolStripMenuItem("Windows ile başlat", null, (s, e) => _uygulama.BaslangicDegistir());
+            menu.Items.Add(Dil.M("t.ayarlar"), null, (s, e) => _uygulama.AyarlariAc());
+            _baslangic = new ToolStripMenuItem(Dil.M("t.baslangic"), null, (s, e) => _uygulama.BaslangicDegistir());
             menu.Items.Add(_baslangic);
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("Çıkış", null, (s, e) => _uygulama.Cikis());
+            menu.Items.Add(Dil.M("t.cikis"), null, (s, e) => _uygulama.Cikis());
 
             menu.Opening += (s, e) =>
             {

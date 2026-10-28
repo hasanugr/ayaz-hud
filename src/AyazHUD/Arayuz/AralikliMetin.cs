@@ -65,10 +65,10 @@ namespace AyazHUD.Arayuz
             var renk = Renk ?? Gorunum.Al(this).Baslik;
             _harfler = new FormattedText[metin.Length];
             _genislik = 0;
-            _yukseklik = new FormattedText("Ğ", Bicim.Tr, FlowDirection.LeftToRight, yazi, Boyut, renk, ppd).Height;
+            _yukseklik = new FormattedText("Ğ", Dil.Kultur, FlowDirection.LeftToRight, yazi, Boyut, renk, ppd).Height;
             for (int i = 0; i < metin.Length; i++)
             {
-                var h = new FormattedText(metin[i].ToString(), Bicim.Tr, FlowDirection.LeftToRight, yazi, Boyut, renk, ppd);
+                var h = new FormattedText(metin[i].ToString(), Dil.Kultur, FlowDirection.LeftToRight, yazi, Boyut, renk, ppd);
                 _harfler[i] = h;
                 _genislik += h.WidthIncludingTrailingWhitespace;
             }

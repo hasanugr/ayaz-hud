@@ -1,15 +1,10 @@
-using System;
-using System.Globalization;
-
 namespace AyazHUD.Arayuz
 {
-    /// <summary>Türkçe sayı biçimi: ondalık virgül, binlik nokta ("3.075 RPM", "4,85 GHz").</summary>
+    /// <summary>Seçili dile göre sayı biçimi: Türkçede "3.075 RPM", "4,85 GHz"; İngilizcede "3,075 RPM", "4.85 GHz".</summary>
     internal static class Bicim
     {
-        public static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-
         public static string Sayi(double? d, int basamak = 0) =>
-            d == null || double.IsNaN(d.Value) || double.IsInfinity(d.Value) ? "--" : d.Value.ToString("N" + basamak, Tr);
+            d == null || double.IsNaN(d.Value) || double.IsInfinity(d.Value) ? "--" : d.Value.ToString("N" + basamak, Dil.Kultur);
 
         /// <summary>Bayt/sn değerini 1 MB/s altında KB/s, üstünde MB/s olarak verir.</summary>
         public static (string Deger, string Birim) Hiz(double? baytSn)

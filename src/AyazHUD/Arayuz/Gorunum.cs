@@ -95,15 +95,6 @@ namespace AyazHUD.Arayuz
         public static KartStili StilCoz(string ad) =>
             Enum.TryParse(ad, true, out KartStili s) ? s : KartStili.Bulanik;
 
-        public static string StilAdi(KartStili s)
-        {
-            switch (s)
-            {
-                case KartStili.Akrilik: return "Akrilik";
-                case KartStili.Koyu: return "Koyu";
-                case KartStili.Seffaf: return "Şeffaf";
-                default: return "Buzlu cam";
-            }
-        }
+        public static string StilAdi(KartStili s) => Dil.M("stil." + s);
     }
 }

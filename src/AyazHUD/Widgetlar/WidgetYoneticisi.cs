@@ -40,13 +40,13 @@ namespace AyazHUD.Widgetlar
             _kaydet = kaydet;
             Tanimlar = new List<Tanim>
             {
-                new Tanim { Kimlik = "saat", Ad = "Saat", Kart = false, Sutun = 0, Olustur = () => new SaatWidget() },
-                new Tanim { Kimlik = "islemci", Ad = "İşlemci", Kart = true, Sutun = 0, Olustur = () => new IslemciWidget() },
-                new Tanim { Kimlik = "bellek", Ad = "Bellek", Kart = true, Sutun = 0, Olustur = () => new BellekWidget() },
-                new Tanim { Kimlik = "sogutma", Ad = "Soğutma ve depolama", Kart = true, Sutun = 0, Olustur = () => new SogutmaWidget(ayarlar) },
-                new Tanim { Kimlik = "fps", Ad = "FPS", Kart = true, Sutun = 1, Olustur = () => new FpsWidget() },
-                new Tanim { Kimlik = "ekran-karti", Ad = "Ekran kartı", Kart = true, Sutun = 1, Olustur = () => new EkranKartiWidget() },
-                new Tanim { Kimlik = "ag", Ad = "Ağ", Kart = true, Sutun = 1, Olustur = () => new AgWidget() },
+                new Tanim { Kimlik = "saat", Ad = Dil.M("w.saat"), Kart = false, Sutun = 0, Olustur = () => new SaatWidget() },
+                new Tanim { Kimlik = "islemci", Ad = Dil.M("w.islemci"), Kart = true, Sutun = 0, Olustur = () => new IslemciWidget() },
+                new Tanim { Kimlik = "bellek", Ad = Dil.M("w.bellek"), Kart = true, Sutun = 0, Olustur = () => new BellekWidget() },
+                new Tanim { Kimlik = "sogutma", Ad = Dil.M("w.sogutma"), Kart = true, Sutun = 0, Olustur = () => new SogutmaWidget(ayarlar) },
+                new Tanim { Kimlik = "fps", Ad = Dil.M("w.fps"), Kart = true, Sutun = 1, Olustur = () => new FpsWidget() },
+                new Tanim { Kimlik = "ekran-karti", Ad = Dil.M("w.ekranKarti"), Kart = true, Sutun = 1, Olustur = () => new EkranKartiWidget() },
+                new Tanim { Kimlik = "ag", Ad = Dil.M("w.ag"), Kart = true, Sutun = 1, Olustur = () => new AgWidget() },
             };
             // Monitör değişikliğinde Windows birkaç mesaj üst üste gönderir; durulunca bir kez yerleştir
             _ekranBekleme = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };

@@ -1,0 +1,17 @@
+﻿Ayaz HUD shows your game's FPS, CPU and GPU temperatures, memory, fans and network on the desktop as frosted-glass widgets. The widgets sit above your wallpaper and below your open windows.
+
+Setup does the following:
+
+  • Installs the app into Program Files\AyazHUD.
+
+  • Installs the PawnIO driver (skipped if it is already installed). CPU temperature and motherboard fans are read through this signed driver; apps like LibreHardwareMonitor and FanControl use the same driver.
+
+  • Creates a scheduled task named "AyazHUD". The sensors and FPS measurement need admin rights, so the app starts through this task without a UAC prompt. Starting with Windows can be turned off in the settings.
+
+Good to know:
+
+  • The setup file is not digitally signed. If Windows SmartScreen says "Windows protected your PC", choose "More info" > "Run anyway".
+
+  • FPS is read with Intel's PresentMon from Windows' own events; nothing is injected into the game. Compatibility with kernel-level anti-cheat (Valorant/Vanguard, FACEIT) still can't be guaranteed.
+
+  • Right-click the tray icon to move the widgets or change colors, look and language.

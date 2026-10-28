@@ -4,7 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:a="clr-namespace:AyazHUD.Arayuz">
     <StackPanel>
-        <a:KartBasligi x:Name="Baslik" Baslik="EKRAN KARTI" />
+        <a:KartBasligi x:Name="Baslik" Baslik="{a:M b.ekranKarti}" />
         <Grid Margin="0,9.6,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="153.6" />
@@ -13,9 +13,9 @@
             </Grid.ColumnDefinitions>
             <a:HalkaOlcer x:Name="Halka" Width="153.6" Height="153.6" />
             <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                <a:DegerSatiri x:Name="Yuk" Etiket="Yük" Birim="%" />
-                <a:DegerSatiri x:Name="Frekans" Etiket="Frekans" Birim="MHz" />
-                <a:DegerSatiri x:Name="Guc" Etiket="Güç" Birim="W" Son="True" />
+                <a:DegerSatiri x:Name="Yuk" Etiket="{a:M yuk}" Birim="%" />
+                <a:DegerSatiri x:Name="Frekans" Etiket="{a:M frekans}" Birim="MHz" />
+                <a:DegerSatiri x:Name="Guc" Etiket="{a:M guc}" Birim="W" Son="True" />
             </StackPanel>
         </Grid>
         <StackPanel Margin="0,16,0,0">

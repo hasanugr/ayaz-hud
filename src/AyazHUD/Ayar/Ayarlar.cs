@@ -34,6 +34,9 @@ namespace AyazHUD.Ayar
         /// <summary>Fan ve disklere verilen adlar ve gizlenenler (anahtar: sensör kimliği).</summary>
         [DataMember(Order = 7)] public List<SensorEtiketi> Etiketler { get; set; }
 
+        /// <summary>Arayüz dili: "tr" ya da "en".</summary>
+        [DataMember(Order = 9)] public string Dil { get; set; }
+
         public Ayarlar() => Varsayilanlar();
 
         // Seri hale getirici kurucuyu çağırmadığı için eksik alanların varsayılanları burada verilir
@@ -50,6 +53,7 @@ namespace AyazHUD.Ayar
             ArkaPlanKarartma = 0;
             Widgetlar = new List<WidgetAyari>();
             Etiketler = new List<SensorEtiketi>();
+            Dil = "tr";
         }
 
         public WidgetAyari Widget(string kimlik)

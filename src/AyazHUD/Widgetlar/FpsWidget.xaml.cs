@@ -32,8 +32,8 @@ namespace AyazHUD.Widgetlar
             Bos.Visibility = oyun ? Visibility.Collapsed : Visibility.Visible;
             if (oyun)
             {
-                Deger.Text = f.Deger.ToString(Bicim.Tr);
-                Dusuk.Deger = f.Yuzde1Dusuk.ToString(Bicim.Tr);
+                Deger.Text = f.Deger.ToString(Dil.Kultur);
+                Dusuk.Deger = f.Yuzde1Dusuk.ToString(Dil.Kultur);
                 KareSuresi.Deger = Bicim.Sayi(f.KareSuresi, 1);
                 Gecikme.Deger = Bicim.Sayi(f.Gecikme, f.Gecikme < 100 ? 1 : 0);
                 Baslik.Sag = f.Uygulama;
@@ -41,9 +41,7 @@ namespace AyazHUD.Widgetlar
             }
             else
             {
-                Bos.Text = f.Hal == FpsHali.IzinYok ? "Yönetici izni gerekiyor"
-                         : f.Hal == FpsHali.Hata ? "FPS ölçülemiyor"
-                         : "Oyun bekleniyor";
+                Bos.Text = Dil.M(f.Hal == FpsHali.IzinYok ? "fps.izinYok" : f.Hal == FpsHali.Hata ? "fps.hata" : "fps.bekleniyor");
                 Dusuk.Deger = "--";
                 KareSuresi.Deger = "--";
                 Gecikme.Deger = "--";

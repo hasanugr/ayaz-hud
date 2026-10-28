@@ -7,7 +7,7 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
   - Saat ve tarih.
   - İşlemci: sıcaklık, yük, frekans, güç ve grafik.
   - Ekran kartı: sıcaklık, yük, frekans, güç, VRAM ve grafik.
-  - FPS: anlık, %1 düşük, kare süresi, oyunun adı ve grafik.
+  - FPS: anlık, en düşük %1, kare süresi, gecikme, oyunun adı ve grafik.
   - Bellek.
   - Pompa ve fanlar, disk sıcaklıkları.
   - Ağ hızı.
@@ -15,9 +15,10 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
 - **Düzenleme:** Widget'lar sürüklenir, birbirine hizalanır, açılıp kapatılır.
 - **Görünüm:**
   - Dört kart stili var: buzlu cam, akrilik, koyu ve şeffaf.
-  - Vurgu rengi ve kart koyuluğu bütün widget'lar için ya da her widget için ayrı seçilebilir.
-  - İstenirse widget'ların olduğu ekranın tamamı buzlanır ("arka plan buzlanması").
+  - Vurgu rengi, kart buzlanması (hafif, orta, güçlü) ve kart koyuluğu bütün widget'lar için ya da her widget için ayrı seçilebilir.
+  - Widget'ların olduğu ekranın tamamı istenirse buzlanır ve/veya kararır ("arka plan" ayarı).
   - Ayarlar penceresinde her seçeneğin önizlemesi görünür.
+- **Dil:** Türkçe ve İngilizce. Kurulumda seçilir (varsayılan Türkçe), sonra ayarlardan değiştirilebilir. Metinler `Arayuz/Dil.cs` içindeki tabloda.
 
 ## Kurulum
 
@@ -28,6 +29,8 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
 3. `AyazHUD` zamanlanmış görevini oluşturur. Uygulama sensörler ve FPS için yönetici yetkisi ister; bu görev sayesinde her açılışta UAC sormadan başlar.
 
 Kurulum dosyası imzasız olduğu için SmartScreen uyarısı çıkabilir: "Ek bilgi" > "Yine de çalıştır".
+
+Uygulamanın eski adı "Sistem Paneli" idi. O adla kurulmuş sürüm varsa, kurulum onu kapatır, eski klasörünü, görevini ve kısayolunu siler. Ayarlar da ilk açılışta eski klasörden alınır.
 
 ## Derleme
 

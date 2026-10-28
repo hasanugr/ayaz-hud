@@ -55,7 +55,18 @@ namespace AyazHUD
             // ---------- Kurulum programının çağırdığı komutlar ----------
             if (arg.Contains("--gorev-kur"))
             {
-                Komut(() => Gorev.Kur(Gorev.OturumAcilisinda() ?? true));
+                Komut(() =>
+                {
+                    Gorev.Kur(Gorev.OturumAcilisinda() ?? true);
+                    // Kurulumda seçilen dil ("--dil tr" ya da "--dil en") uygulamanın dili olur
+                    int i = arg.IndexOf("--dil");
+                    if (i >= 0 && i + 1 < arg.Count)
+                    {
+                        var ayarlar = Ayarlar.Yukle();
+                        ayarlar.Dil = arg[i + 1] == Dil.Ingilizce ? Dil.Ingilizce : Dil.Turkce;
+                        ayarlar.Kaydet();
+                    }
+                });
                 return;
             }
             if (arg.Contains("--gorev-sil"))
@@ -90,6 +101,7 @@ namespace AyazHUD
 
             Gunluk.Yaz($"Başladı: sürüm {Surum}, yönetici: {_yonetici}, Windows {Environment.OSVersion.Version}");
             _ayarlar = Ayarlar.Yukle();
+            Dil.Ayarla(_ayarlar.Dil);
             TemaUygula();
 
             _sensorler = new SensorServisi();
@@ -115,9 +127,9 @@ namespace AyazHUD
             _saniye.Start();
 
             if (!_yonetici)
-                _tepsi.Bildir("Yönetici izni olmadan çalışıyor", "İşlemci sıcaklığı, fanlar ve FPS gösterilemez. Uygulamayı Başlat menüsünden yeniden açıp izin verebilirsin.");
+                _tepsi.Bildir(Dil.M("n.yetkisizBaslik"), Dil.M("n.yetkisizMetin"));
             else if (!PawnIOKurulu())
-                _tepsi.Bildir("PawnIO sürücüsü kurulu değil", "İşlemci sıcaklığı ve anakart fanları okunamaz. Ayaz HUD'u kurulum dosyasıyla yeniden kur.");
+                _tepsi.Bildir(Dil.M("n.pawnioBaslik"), Dil.M("n.pawnioMetin"));
         }
 
         void Tik()
@@ -128,7 +140,7 @@ namespace AyazHUD
             a.Fps = _fps.Hesapla();
             SonAnlik = a;
             _widgetlar.Guncelle(a);
-            _tepsi.IpucuYaz($"Ayaz HUD\nİşlemci {Bicim.Sayi(a.IslemciSicaklik)} °C · Ekran kartı {Bicim.Sayi(a.GpuSicaklik)} °C");
+            _tepsi.IpucuYaz("Ayaz HUD\n" + string.Format(Dil.M("t.ipucu"), Bicim.Sayi(a.IslemciSicaklik), Bicim.Sayi(a.GpuSicaklik)));
         }
 
         void Istek(string komut)
@@ -153,6 +165,33 @@ namespace AyazHUD
         }
 
         internal void DuzenlemeDegistir() => _widgetlar.Duzenleme = !_widgetlar.Duzenleme;
+
+        /// <summary>Dili değiştirir; widget'lar, tepsi menüsü ve ayarlar penceresi yeni dille yeniden kurulur.</summary>
+        internal void DilDegistir(string kod)
+        {
+            if (kod == _ayarlar.Dil) return;
+            _ayarlar.Dil = kod;
+            _ayarlar.Kaydet();
+            Dil.Ayarla(kod);
+            Gunluk.Yaz("Dil değişti: " + kod);
+
+            bool duzenleme = _widgetlar.Duzenleme;
+            _widgetlar.Kapat();
+            _widgetlar = new WidgetYoneticisi(_ayarlar, AyarlarDegisti);
+            _widgetlar.Baslat();
+            _widgetlar.Duzenleme = duzenleme;
+            _tepsi.Dispose();
+            _tepsi = new Tepsi(this, _widgetlar);
+
+            if (_ayarPenceresi != null)
+            {
+                var eski = _ayarPenceresi;
+                _ayarPenceresi = null;
+                eski.Close();
+                AyarlariAc();
+                _ayarPenceresi.GenelSayfasiniAc();
+            }
+        }
 
         /// <summary>Windows ile başlama durumu; değiştirilemiyorsa (görev yok ya da yönetici değil) null.</summary>
         internal bool? BaslangictaMi() => _yonetici ? Gorev.OturumAcilisinda() : null;

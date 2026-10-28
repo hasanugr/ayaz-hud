@@ -44,9 +44,9 @@ namespace AyazHUD.Widgetlar
 
         public void Tik(DateTime t)
         {
-            _saat.Text = t.ToString("HH:mm", Bicim.Tr);
-            _saniye.Text = t.ToString("ss", Bicim.Tr);
-            _tarih.Text = t.ToString("d MMMM dddd", Bicim.Tr);
+            _saat.Text = t.ToString("HH:mm", Dil.Kultur);
+            _saniye.Text = t.ToString("ss", Dil.Kultur);
+            _tarih.Text = t.ToString(Dil.M("tarihBicimi"), Dil.Kultur);
         }
 
         public void Guncelle(Anlik anlik) => Tik(DateTime.Now);
@@ -54,7 +54,7 @@ namespace AyazHUD.Widgetlar
 
     internal sealed class BellekWidget : StackPanel, IWidget
     {
-        readonly KartBasligi _baslik = new KartBasligi { Baslik = "BELLEK" };
+        readonly KartBasligi _baslik = new KartBasligi { Baslik = Dil.M("b.bellek") };
         readonly Cubuk _cubuk = new Cubuk { Margin = new Thickness(0, 12, 0, 0) };
 
         public BellekWidget()
@@ -66,7 +66,7 @@ namespace AyazHUD.Widgetlar
         public void Guncelle(Anlik a)
         {
             if (a.RamKullanilan == null || !(a.RamToplam > 0)) return;
-            _baslik.Sag = $"{Bicim.Sayi(a.RamKullanilan, 1)} / {Bicim.Sayi(Math.Round(a.RamToplam.Value))} GB · %{Bicim.Sayi(a.RamYuk)}";
+            _baslik.Sag = $"{Bicim.Sayi(a.RamKullanilan, 1)} / {Bicim.Sayi(Math.Round(a.RamToplam.Value))} GB · {Dil.Yuzde(Bicim.Sayi(a.RamYuk))}";
             _cubuk.Ayarla((a.RamYuk ?? a.RamKullanilan / a.RamToplam * 100) / 100);
         }
     }
@@ -82,7 +82,7 @@ namespace AyazHUD.Widgetlar
         public SogutmaWidget(Ayarlar ayarlar)
         {
             _ayarlar = ayarlar;
-            Children.Add(new KartBasligi { Baslik = "SOĞUTMA VE DEPOLAMA" });
+            Children.Add(new KartBasligi { Baslik = Dil.M("b.sogutma") });
             Children.Add(_izgara);
         }
 
@@ -92,10 +92,10 @@ namespace AyazHUD.Widgetlar
             foreach (var fan in a.Fanlar.Where(f => !_ayarlar.Gizli(f)))
                 satirlar.Add((_ayarlar.Ad(fan), Bicim.Sayi(fan.Deger), "RPM"));
             if (a.GpuFan != null)
-                satirlar.Add(("Ekran kartı fanı", a.GpuFan == 0 ? "Duruyor" : Bicim.Sayi(a.GpuFan), a.GpuFan == 0 ? "" : "RPM"));
+                satirlar.Add((Dil.M("gpuFani"), a.GpuFan == 0 ? Dil.M("duruyor") : Bicim.Sayi(a.GpuFan), a.GpuFan == 0 ? "" : "RPM"));
             var diskler = a.Diskler.Where(d => !_ayarlar.Gizli(d)).ToList();
             if (diskler.Count > 0)
-                satirlar.Add(("Disk " + string.Join(" / ", diskler.Select(_ayarlar.Ad)),
+                satirlar.Add((Dil.M("disk") + " " + string.Join(" / ", diskler.Select(_ayarlar.Ad)),
                               string.Join(" / ", diskler.Select(d => Bicim.Sayi(d.Deger))), "°C"));
 
             // Satırların sayısı değiştiyse hücreleri yeniden kur, yoksa yalnızca değerleri güncelle
@@ -123,12 +123,12 @@ namespace AyazHUD.Widgetlar
 
     internal sealed class AgWidget : StackPanel, IWidget
     {
-        readonly KucukDeger _indirme = new KucukDeger { Etiket = "İndirme", Birim = "MB/s", Margin = new Thickness(0, 0, 16, 0) };
-        readonly KucukDeger _yukleme = new KucukDeger { Etiket = "Yükleme", Birim = "MB/s" };
+        readonly KucukDeger _indirme = new KucukDeger { Etiket = Dil.M("indirme"), Birim = "MB/s", Margin = new Thickness(0, 0, 16, 0) };
+        readonly KucukDeger _yukleme = new KucukDeger { Etiket = Dil.M("yukleme"), Birim = "MB/s" };
 
         public AgWidget()
         {
-            Children.Add(new KartBasligi { Baslik = "AĞ" });
+            Children.Add(new KartBasligi { Baslik = Dil.M("b.ag") });
             var izgara = new UniformGrid { Columns = 2, Margin = new Thickness(0, 12.8, 0, 0) };
             izgara.Children.Add(_indirme);
             izgara.Children.Add(_yukleme);

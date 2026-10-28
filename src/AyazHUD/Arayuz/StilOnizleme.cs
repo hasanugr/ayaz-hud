@@ -85,7 +85,7 @@ namespace AyazHUD.Arayuz
 
             // Minik içerik: başlık, halka, sayı
             var icerik = new Canvas();
-            var baslik = new TextBlock { Text = "İŞLEMCİ", FontSize = 8, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(_vurgu) };
+            var baslik = new TextBlock { Text = Dil.M("b.islemci"), FontSize = 8, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(_vurgu) };
             Canvas.SetLeft(baslik, kart.Left + 9);
             Canvas.SetTop(baslik, kart.Top + 6);
             icerik.Children.Add(baslik);

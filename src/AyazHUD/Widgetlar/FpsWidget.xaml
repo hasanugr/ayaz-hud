@@ -18,9 +18,9 @@
         </Grid>
         <!-- En düşük %1: takılmaları gösterir. Kare süresi: 1000 / FPS. Gecikme: kare başlangıcından ekrana kadar. -->
         <UniformGrid Columns="3" Margin="0,8,0,0">
-            <a:KucukDeger x:Name="Dusuk" Etiket="En düşük %1" Birim="FPS" Margin="0,0,12,0" />
-            <a:KucukDeger x:Name="KareSuresi" Etiket="Kare süresi" Birim="ms" Margin="0,0,12,0" />
-            <a:KucukDeger x:Name="Gecikme" Etiket="Gecikme" Birim="ms" />
+            <a:KucukDeger x:Name="Dusuk" Etiket="{a:M enDusuk}" Birim="FPS" Margin="0,0,12,0" />
+            <a:KucukDeger x:Name="KareSuresi" Etiket="{a:M kareSuresi}" Birim="ms" Margin="0,0,12,0" />
+            <a:KucukDeger x:Name="Gecikme" Etiket="{a:M gecikme}" Birim="ms" />
         </UniformGrid>
         <a:CizgiGrafik x:Name="Grafik" Height="44" Margin="0,14.4,0,0" />
     </StackPanel>
