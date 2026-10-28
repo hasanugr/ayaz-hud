@@ -1,0 +1,34 @@
+Sistem Paneli - kullanılan üçüncü taraf bileşenler
+===================================================
+
+Sistem Paneli aşağıdaki açık kaynak bileşenleri değiştirmeden kullanır ve dağıtır.
+Lisans metinleri bu klasörde; kaynak kodları belirtilen adreslerde.
+
+LibreHardwareMonitorLib 0.9.6
+  Lisans : Mozilla Public License 2.0 (LibreHardwareMonitor-MPL-2.0.txt)
+  Kaynak : https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/tree/v0.9.6
+  Dosya  : LibreHardwareMonitorLib.dll
+
+DiskInfoToolkit 1.1.2, RAMSPDToolkit-NDD 1.4.2, BlackSharp.Core 1.0.7 (LibreHardwareMonitor bağımlılıkları)
+  Lisans : Mozilla Public License 2.0 (LibreHardwareMonitor-MPL-2.0.txt ile aynı metin)
+  Kaynak : https://github.com/Blacktempel/DiskInfoToolkit
+           https://github.com/Blacktempel/RAMSPDToolkit
+           https://github.com/Blacktempel/BlackSharp
+
+HidSharp 2.6.4 (LibreHardwareMonitor bağımlılığı)
+  Lisans : Apache License 2.0 (HidSharp-Apache-2.0.txt)
+  Kaynak : https://software.seekye.com/hidsharp
+
+System.Memory, System.Buffers, System.Numerics.Vectors, System.Runtime.CompilerServices.Unsafe
+  Lisans : MIT (dotnet-MIT.txt), Copyright (c) .NET Foundation and Contributors
+  Kaynak : https://github.com/dotnet/maintenance-packages
+
+PresentMon 2.6.0 (PresentMon-2.6.0-x64.exe)
+  Lisans : MIT (PresentMon-MIT.txt), Copyright (C) 2017-2024 Intel Corporation
+  Kaynak : https://github.com/GameTechDev/PresentMon/tree/v2.6.0
+
+PawnIO 2.2.0 (sürücü; kurulum sırasında PawnIO_setup.exe ile kurulur)
+  Lisans : GNU General Public License 2.0 (PawnIO-GPL-2.0.txt)
+  Kaynak : https://github.com/namazso/PawnIO/tree/2.2.0
+  Kurulum: https://github.com/namazso/PawnIO.Setup/releases
+  PawnIO, Sistem Paneli kaldırılınca kaldırılmaz; Windows Ayarlar > Uygulamalar'dan ayrıca kaldırılabilir.

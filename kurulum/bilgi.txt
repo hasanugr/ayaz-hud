@@ -1,0 +1,17 @@
+﻿Sistem Paneli, oyun oynarken FPS'i, işlemci ve ekran kartı sıcaklığını, belleği, fanları ve ağı masaüstünde bulanık camlı widget'larla gösterir. Widget'lar duvar kâğıdının üstünde, açık pencerelerin altında durur.
+
+Kurulum şunları yapar:
+
+  • Uygulamayı Program Files\SistemPaneli klasörüne kurar.
+
+  • PawnIO sürücüsünü kurar (zaten kuruluysa atlanır). İşlemci sıcaklığı ve anakart fanları bu imzalı sürücüyle okunur. LibreHardwareMonitor ve FanControl gibi programlar da aynı sürücüyü kullanır.
+
+  • "SistemPaneli" adında bir zamanlanmış görev oluşturur. Sensörler ve FPS ölçümü yönetici yetkisi istediği için uygulama bu görevle, her açılışta UAC sormadan başlar. Windows ile başlama ayardan kapatılabilir.
+
+Bilmen gerekenler:
+
+  • Kurulum dosyası dijital olarak imzalı değil. Windows SmartScreen "Windows bilgisayarınızı korudu" derse "Ek bilgi" > "Yine de çalıştır" seçebilirsin.
+
+  • FPS, Intel'in PresentMon aracıyla Windows'un kendi olaylarından okunur; oyuna hiçbir şey eklenmez. Yine de çekirdek seviyesinde hile koruması olan oyunlarla (Valorant/Vanguard, FACEIT gibi) uyum garanti edilemez.
+
+  • Widget'ları taşımak, renkleri ve görünümü değiştirmek için bildirim alanındaki simgeye sağ tıkla.

@@ -1,0 +1,25 @@
+<UserControl x:Class="SistemPaneli.Widgetlar.FpsWidget"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:a="clr-namespace:SistemPaneli.Arayuz">
+    <StackPanel>
+        <a:KartBasligi x:Name="Baslik" Baslik="FPS" />
+        <!-- Sayı ve "Oyun bekleniyor" aynı yüksekliği kaplar; kart boyu değişmez -->
+        <Grid Height="126.4">
+            <TextBlock x:Name="Deger" Text="--" FontSize="120" LineHeight="120" LineStackingStrategy="BlockLineHeight"
+                       VerticalAlignment="Bottom">
+                <TextBlock.Effect>
+                    <DropShadowEffect x:Name="Parilti" ShadowDepth="0" BlurRadius="30" Opacity="0.35" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock x:Name="Bos" FontSize="32" FontWeight="Light" VerticalAlignment="Center" Margin="0,8,0,0"
+                       TextTrimming="CharacterEllipsis" Visibility="Collapsed" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <a:KucukDeger x:Name="Dusuk" Etiket="%1 düşük" Margin="0,0,32,0" />
+            <a:KucukDeger x:Name="KareSuresi" Etiket="Kare süresi" Birim="ms" />
+        </StackPanel>
+        <a:CizgiGrafik x:Name="Grafik" Height="44" Margin="0,14.4,0,0" />
+    </StackPanel>
+</UserControl>

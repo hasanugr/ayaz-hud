@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- .NET Framework 4.8 her Windows 10/11'de hazır geliyor; arkadaşların ek bir şey kurması gerekmiyor -->
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>SistemPaneli</RootNamespace>
+    <AssemblyName>SistemPaneli</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Varliklar\simge.ico</ApplicationIcon>
+    <DebugType>embedded</DebugType>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <SatelliteResourceLanguages>tr</SatelliteResourceLanguages>
+
+    <Version>0.1.0</Version>
+    <Product>Sistem Paneli</Product>
+    <Title>Sistem Paneli</Title>
+    <Description>FPS, işlemci, ekran kartı ve bellek bilgisini masaüstünde bulanık camlı widget'larla gösterir.</Description>
+    <Authors>Hasan Uğur</Authors>
+    <Copyright>© 2026 Hasan Uğur</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- LibreHardwareMonitorLib 0.9.6 (net472). Bağımlılıkları aynı klasörden otomatik kopyalanır. -->
+    <Reference Include="LibreHardwareMonitorLib">
+      <HintPath>..\..\bagimliliklar\LibreHardwareMonitor\LibreHardwareMonitorLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceProcess" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\bagimliliklar\PresentMon\PresentMon-2.6.0-x64.exe" Link="PresentMon-2.6.0-x64.exe" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="Varliklar\simge.ico" LogicalName="simge.ico" />
+  </ItemGroup>
+
+</Project>

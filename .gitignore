@@ -1,0 +1,12 @@
+# Derleme çıktıları
+bin/
+obj/
+cikti/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+*.log
