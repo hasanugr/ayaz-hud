@@ -53,6 +53,38 @@ namespace AyazHUD.Arayuz
             return Color.FromRgb((byte)Math.Round((r + m) * 255), (byte)Math.Round((g + m) * 255), (byte)Math.Round((b + m) * 255));
         }
 
+        /// <summary>Ton (0–360), doygunluk ve parlaklık (0–1) → renk. Renk seçicideki çark ve parlaklık çubuğu bunu kullanır.</summary>
+        public static Color Hsv(double ton, double doygunluk, double parlaklik)
+        {
+            double c = parlaklik * doygunluk;
+            double h = ((ton % 360) + 360) % 360 / 60;
+            double x = c * (1 - Math.Abs(h % 2 - 1));
+            double r = 0, g = 0, b = 0;
+            if (h < 1) { r = c; g = x; }
+            else if (h < 2) { r = x; g = c; }
+            else if (h < 3) { g = c; b = x; }
+            else if (h < 4) { g = x; b = c; }
+            else if (h < 5) { r = x; b = c; }
+            else { r = c; b = x; }
+            double m = parlaklik - c;
+            return Color.FromRgb((byte)Math.Round((r + m) * 255), (byte)Math.Round((g + m) * 255), (byte)Math.Round((b + m) * 255));
+        }
+
+        public static (double Ton, double Doygunluk, double Parlaklik) HsvCoz(Color renk)
+        {
+            double r = renk.R / 255.0, g = renk.G / 255.0, b = renk.B / 255.0;
+            double enBuyuk = Math.Max(r, Math.Max(g, b)), enKucuk = Math.Min(r, Math.Min(g, b)), fark = enBuyuk - enKucuk;
+            double ton = 0;
+            if (fark > 0)
+            {
+                if (enBuyuk == r) ton = 60 * (((g - b) / fark) % 6);
+                else if (enBuyuk == g) ton = 60 * ((b - r) / fark + 2);
+                else ton = 60 * ((r - g) / fark + 4);
+            }
+            if (ton < 0) ton += 360;
+            return (ton, enBuyuk > 0 ? fark / enBuyuk : 0, enBuyuk);
+        }
+
         public static bool RenkCoz(string metin, out Color renk)
         {
             renk = default;

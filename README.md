@@ -37,6 +37,7 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
 - **Görünüm:**
   - Dört kart stili var: buzlu cam, akrilik, koyu ve şeffaf.
   - Vurgu rengi, kart buzlanması (%10–100, 10'ar 10'ar) ve kart koyuluğu bütün widget'lar için ya da her widget için ayrı seçilebilir.
+  - Vurgu rengi hazır renklerden, renk çarkından (parlaklık, R/G/B, renk kodu) ya da kaydettiğin renklerden seçilir.
   - Widget'ların olduğu ekranın tamamı istenirse buzlanır ve/veya kararır ("arka plan" ayarı).
   - Ayarlar penceresinde her seçeneğin önizlemesi görünür.
 - **Dil:** Türkçe ve İngilizce. Kurulumda seçilir (varsayılan Türkçe), sonra ayarlardan değiştirilebilir. Metinler `Arayuz/Dil.cs` içindeki tabloda.

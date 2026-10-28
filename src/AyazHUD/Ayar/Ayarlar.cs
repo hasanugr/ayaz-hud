@@ -43,6 +43,9 @@ namespace AyazHUD.Ayar
         /// </summary>
         [DataMember(Order = 10)] public string Ekran { get; set; }
 
+        /// <summary>Renk seçicide kaydedilen renkler (#RRGGBB), en yenisi başta.</summary>
+        [DataMember(Order = 11)] public List<string> KayitliRenkler { get; set; }
+
         public Ayarlar() => Varsayilanlar();
 
         // Seri hale getirici kurucuyu çağırmadığı için eksik alanların varsayılanları burada verilir
@@ -70,6 +73,7 @@ namespace AyazHUD.Ayar
             Widgetlar = new List<WidgetAyari>();
             Etiketler = new List<SensorEtiketi>();
             Dil = "tr";
+            KayitliRenkler = new List<string>();
         }
 
         public WidgetAyari Widget(string kimlik)

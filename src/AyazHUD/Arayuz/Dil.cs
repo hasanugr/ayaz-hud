@@ -85,6 +85,11 @@ namespace AyazHUD.Arayuz
             ["renk.mercan"] = ("Mercan", "Coral"),
             ["renk.gumus"] = ("Gümüş", "Silver"),
             ["renk.ozel"] = ("Kendi rengin (#RRGGBB)", "Your own color (#RRGGBB)"),
+            ["renk.secici"] = ("Renk seç", "Pick a color"),
+            ["renk.kod"] = ("Kod", "Hex"),
+            ["renk.kayitli"] = ("Kaydettiğin renkler", "Saved colors"),
+            ["renk.kaydet"] = ("Bu rengi kaydet", "Save this color"),
+            ["renk.sil"] = ("sağ tıkla: sil", "right-click to remove"),
 
             // ---------- Tepsi ve bildirimler ----------
             ["t.duzenle"] = ("Düzenle (widget'ları sürükle)", "Edit layout (drag widgets)"),

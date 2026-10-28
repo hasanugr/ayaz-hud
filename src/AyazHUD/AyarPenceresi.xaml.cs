@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using AyazHUD.Arayuz;
 using AyazHUD.Ayar;
 using AyazHUD.Cekirdek;
@@ -93,6 +95,9 @@ namespace AyazHUD
 
         static Color Renk(string metin) => Tema.RenkCoz(metin, out var c) ? c : Tema.VarsayilanVurgu;
 
+        /// <summary>Renk seçicide kaydedilen renkler; eski ayar dosyasında yoksa boş liste açılır.</summary>
+        List<string> KayitliRenkler() => _ayarlar.KayitliRenkler ?? (_ayarlar.KayitliRenkler = new List<string>());
+
         // ---------- Görünüm ----------
 
         void GorunumSayfasi()
@@ -101,7 +106,7 @@ namespace AyazHUD
                 () => Gorunum.StilCoz(_ayarlar.Stil),
                 s => { _ayarlar.Stil = s.ToString(); Uygula(); },
                 () => (Renk(_ayarlar.Vurgu), _ayarlar.Koyuluk, _ayarlar.Buzlanma));
-            _genelRenk = new RenkSecici(GenelRenkler, () => _ayarlar.Vurgu, r => { _ayarlar.Vurgu = r; Uygula(); });
+            _genelRenk = new RenkSecici(GenelRenkler, () => _ayarlar.Vurgu, r => { _ayarlar.Vurgu = r; Uygula(); }, KayitliRenkler, _uygulama.AyarlarDegisti);
 
             KaydiriciBagla(GenelKoyuluk, GenelKoyulukYazisi, () => _ayarlar.Koyuluk, v => _ayarlar.Koyuluk = v);
             BuzlanmaBagla(GenelBuzlanma, GenelBuzlanmaYazisi, () => _ayarlar.Buzlanma, v => _ayarlar.Buzlanma = v);
@@ -191,7 +196,8 @@ namespace AyazHUD
             {
                 if (_seciliWidget != null) _ayarlar.Widget(_seciliWidget).Buzlanma = v;
             });
-            _ozelRenk = new RenkSecici(OzelRenkler, () => _ayarlar.Widget(_seciliWidget ?? "islemci").Vurgu, r => { _ayarlar.Widget(_seciliWidget).Vurgu = r; Uygula(); });
+            _ozelRenk = new RenkSecici(OzelRenkler, () => _ayarlar.Widget(_seciliWidget ?? "islemci").Vurgu, r => { _ayarlar.Widget(_seciliWidget).Vurgu = r; Uygula(); },
+                KayitliRenkler, _uygulama.AyarlarDegisti);
             OzelKoyuluk.ValueChanged += (s, e) =>
             {
                 OzelKoyulukYazisi.Text = Dil.Yuzde($"{OzelKoyuluk.Value:0}");
@@ -402,7 +408,7 @@ namespace AyazHUD
             }
         }
 
-        /// <summary>Hazır renkler ve elle renk kodu.</summary>
+        /// <summary>Hazır renkler, açılır renk seçici ve elle renk kodu.</summary>
         sealed class RenkSecici
         {
             static readonly (string Ad, string Renk)[] HazirRenkler =
@@ -412,13 +418,22 @@ namespace AyazHUD
             };
 
             readonly List<(Ellipse Halka, string Renk)> _halkalar = new List<(Ellipse, string)>();
+            readonly Ellipse _seciciHalkasi = new Ellipse { Width = 34, Height = 34, StrokeThickness = 2, Stroke = Brushes.Transparent };
             readonly TextBox _kutu = new TextBox { Width = 92, Margin = new Thickness(8, 0, 0, 0), ToolTip = Dil.M("renk.ozel") };
             readonly Func<string> _secili;
+            readonly Action<string> _sec;
             bool _yaziliyor;
 
-            public RenkSecici(Panel panel, Func<string> secili, Action<string> sec)
+            // Seçicide sürüklerken widget'lar her fare adımında değil, en fazla 60 ms'de bir güncellenir
+            readonly DispatcherTimer _bekleme = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(60) };
+            Color? _bekleyen;
+
+            /// <param name="kayitlilar">Renk seçicide kaydedilen renkler (bütün seçiciler için ortak).</param>
+            /// <param name="kaydet">Kaydedilen renkler değişince ayarları kaydetmek için.</param>
+            public RenkSecici(Panel panel, Func<string> secili, Action<string> sec, Func<List<string>> kayitlilar, Action kaydet)
             {
                 _secili = secili;
+                _sec = sec;
                 foreach (var (ad, renk) in HazirRenkler)
                 {
                     Tema.RenkCoz(renk, out var c);
@@ -435,6 +450,43 @@ namespace AyazHUD
                     _halkalar.Add((halka, renk));
                     panel.Children.Add(dugme);
                 }
+
+                // Renk çarkı düğmesi: açılır renk seçici. Pencerenin kaynaklarını (yazı kutusu, düğme stilleri)
+                // kullanabilsin diye açılır pencere de panele eklenir; yer kaplamaz.
+                var palet = new RenkPaleti(kayitlilar, kaydet);
+                var acici = new Grid { Margin = new Thickness(0, 0, 6, 0), Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent, ToolTip = Dil.M("renk.secici") };
+                acici.Children.Add(_seciciHalkasi);
+                acici.Children.Add(new Ellipse { Width = 24, Height = 24, Fill = new ImageBrush(RenkPaleti.CarkResmi) });
+                var acilir = new Popup
+                {
+                    PlacementTarget = acici,
+                    Placement = PlacementMode.Bottom,
+                    HorizontalOffset = -12,
+                    StaysOpen = false,
+                    AllowsTransparency = true,
+                    PopupAnimation = PopupAnimation.Fade,
+                    Child = palet,
+                };
+                acici.MouseLeftButtonUp += (o, e) =>
+                {
+                    if (!acilir.IsOpen && Tema.RenkCoz(_secili(), out var c)) palet.Ayarla(c);
+                    acilir.IsOpen = !acilir.IsOpen;
+                };
+                palet.Degisti += c =>
+                {
+                    _bekleyen = c;
+                    if (!_bekleme.IsEnabled) _bekleme.Start();
+                };
+                palet.Kapat += () => acilir.IsOpen = false;
+                _bekleme.Tick += (o, e) =>
+                {
+                    _bekleme.Stop();
+                    BekleyeniUygula();
+                };
+                acilir.Closed += (o, e) => BekleyeniUygula();
+                panel.Children.Add(acici);
+                panel.Children.Add(acilir);
+
                 _kutu.TextChanged += (o, e) =>
                 {
                     string metin = _kutu.Text.Trim();
@@ -443,6 +495,14 @@ namespace AyazHUD
                     Halkalar();
                 };
                 panel.Children.Add(_kutu);
+                Yenile();
+            }
+
+            void BekleyeniUygula()
+            {
+                if (!(_bekleyen is Color c)) return;
+                _bekleyen = null;
+                _sec(Tema.RenkMetni(c));
                 Yenile();
             }
 
@@ -457,8 +517,15 @@ namespace AyazHUD
             void Halkalar()
             {
                 string secili = _secili();
+                bool hazir = false;
                 foreach (var (halka, renk) in _halkalar)
-                    halka.Stroke = string.Equals(renk, secili, StringComparison.OrdinalIgnoreCase) ? Brushes.White : Brushes.Transparent;
+                {
+                    bool bu = string.Equals(renk, secili, StringComparison.OrdinalIgnoreCase);
+                    halka.Stroke = bu ? Brushes.White : Brushes.Transparent;
+                    hazir |= bu;
+                }
+                // Hazır renklerden biri değilse seçicinin halkası işaretlenir
+                _seciciHalkasi.Stroke = !hazir && !string.IsNullOrEmpty(secili) ? Brushes.White : Brushes.Transparent;
             }
         }
     }
