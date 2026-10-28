@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
 using LibreHardwareMonitor.Hardware;
+using LibreHardwareMonitor.Hardware.Storage;
 
 namespace AyazHUD.Cekirdek
 {
@@ -80,16 +81,27 @@ namespace AyazHUD.Cekirdek
                     s.Fanlar.Add((fan, FanAdi(fan.Name)));
 
             // ---------- Diskler (sürücü harfiyle) ----------
-            var harfler = SurucuHarfleri();
+            // Harfler diskin kendi bölüm tablosundan; okunamazsa WMI'da model adı eşleştirilerek
+            Dictionary<string, List<string>> wmiHarfleri = null;
             var diskler = new List<(ISensor Sensor, string Ad, string Sira)>();
             foreach (var h in donanimlar.Where(h => h.HardwareType == HardwareType.Storage))
             {
                 var sicaklik = Sensorler(h, SensorType.Temperature)
                     .FirstOrDefault(x => !Regex.IsMatch(x.Name, "Warning|Critical|Limit|Threshold", RegexOptions.IgnoreCase));
-                if (sicaklik == null) continue;
-                var eslesen = harfler.Where(c => c.Key.IndexOf(h.Name.Trim(), StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                                 h.Name.IndexOf(c.Key, StringComparison.OrdinalIgnoreCase) >= 0)
-                                     .SelectMany(c => c.Value).Distinct().OrderBy(x => x).ToList();
+                if (sicaklik == null)
+                {
+                    // USB bellekler gibi çıkarılabilir diskler sıcaklık bildirmez; onlar beklenmez
+                    (Cikarilabilir(h) ? s.CikarilabilirDiskler : s.SicakliksizDiskler).Add(h.Name.Trim());
+                    continue;
+                }
+                var eslesen = BolumHarfleri(h);
+                if (eslesen.Count == 0)
+                {
+                    wmiHarfleri = wmiHarfleri ?? SurucuHarfleri();
+                    eslesen = wmiHarfleri.Where(c => c.Key.IndexOf(h.Name.Trim(), StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                                     h.Name.IndexOf(c.Key, StringComparison.OrdinalIgnoreCase) >= 0)
+                                         .SelectMany(c => c.Value).Distinct().OrderBy(x => x).ToList();
+                }
                 string ad = eslesen.Count > 0 ? string.Join(" ", eslesen) : h.Name.Trim();
                 diskler.Add((sicaklik, ad, eslesen.Count > 0 ? eslesen[0] : "~" + ad));
             }
@@ -181,6 +193,35 @@ namespace AyazHUD.Cekirdek
             }
         }
 
+        /// <summary>Diskteki bölümlerin sürücü harfleri ("C:", "D:"); disk bilgisi okunamazsa boş.</summary>
+        static List<string> BolumHarfleri(IHardware h)
+        {
+            try
+            {
+                var bolumler = (h as StorageDevice)?.Storage?.Partitions;
+                if (bolumler == null) return new List<string>();
+                return bolumler.Where(b => b.DriveLetter != null).Select(b => char.ToUpperInvariant(b.DriveLetter.Value) + ":")
+                               .Distinct().OrderBy(x => x).ToList();
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
+        }
+
+        static bool Cikarilabilir(IHardware h)
+        {
+            try
+            {
+                var disk = (h as StorageDevice)?.Storage;
+                return disk != null && (disk.IsRemoveableMedia || disk.BusType == DiskInfoToolkit.Enums.Interop.StorageBusType.BusTypeUsb);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         static bool _harfHatasiYazildi;
 
         /// <summary>
@@ -237,6 +278,10 @@ namespace AyazHUD.Cekirdek
         public ISensor RamYuk, RamKullanilan, RamBos;
         public List<(ISensor Sensor, string Ad)> Fanlar = new List<(ISensor, string)>();
         public List<(ISensor Sensor, string Ad)> Diskler = new List<(ISensor, string)>();
+        /// <summary>Bulunan ama sıcaklığı okunamayan (çıkarılabilir olmayan) disklerin modelleri.</summary>
+        public List<string> SicakliksizDiskler = new List<string>();
+        /// <summary>Sıcaklık bildirmeyen çıkarılabilir diskler (USB bellek); yalnızca günlük için.</summary>
+        public List<string> CikarilabilirDiskler = new List<string>();
         public ISensor Indirme, Yukleme;
         public List<IHardware> Donanimlar = new List<IHardware>();
 
@@ -316,6 +361,8 @@ namespace AyazHUD.Cekirdek
             foreach (var f in GpuFanlari) Ekle("GPU fanı", f);
             foreach (var (s, ad) in Fanlar) Ekle("Fan " + ad, s);
             foreach (var (s, ad) in Diskler) Ekle("Disk " + ad, s);
+            if (SicakliksizDiskler.Count > 0) b.Append("\n  Sıcaklığı okunamayan diskler: " + string.Join(", ", SicakliksizDiskler));
+            if (CikarilabilirDiskler.Count > 0) b.Append("\n  Çıkarılabilir diskler (sıcaklık beklenmez): " + string.Join(", ", CikarilabilirDiskler));
             return b.ToString();
         }
     }

@@ -77,6 +77,8 @@ namespace AyazHUD.Widgetlar
         readonly Ayarlar _ayarlar;
         readonly UniformGrid _izgara = new UniformGrid { Columns = 2, Margin = new Thickness(0, 12.8, -16, -14.4) };
         readonly List<KucukDeger> _hucreler = new List<KucukDeger>();
+        // Hiç fan ve disk yoksa (ya da hepsi gizlendiyse) kart boş kalmasın
+        readonly TextBlock _bos = new TextBlock { Text = Dil.M("sogutmaBos"), FontSize = 14.4, Foreground = Tema.Soluk, Margin = new Thickness(0, 12.8, 0, 0), Visibility = Visibility.Collapsed };
         string _duzen = "";
 
         public SogutmaWidget(Ayarlar ayarlar)
@@ -84,6 +86,7 @@ namespace AyazHUD.Widgetlar
             _ayarlar = ayarlar;
             Children.Add(new KartBasligi { Baslik = Dil.M("b.sogutma") });
             Children.Add(_izgara);
+            Children.Add(_bos);
         }
 
         public void Guncelle(Anlik a)
@@ -101,6 +104,9 @@ namespace AyazHUD.Widgetlar
                 satirlar.Add((Dil.M("disk") + " " + string.Join(" / ", ikili.Select(_ayarlar.Ad)),
                               string.Join(" / ", ikili.Select(d => Bicim.Sayi(d.Deger))), "°C"));
             }
+
+            _bos.Visibility = satirlar.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            _izgara.Visibility = satirlar.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
             // Satırların sayısı değiştiyse hücreleri yeniden kur, yoksa yalnızca değerleri güncelle
             string duzen = satirlar.Count.ToString();

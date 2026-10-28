@@ -32,6 +32,10 @@
     <Reference Include="LibreHardwareMonitorLib">
       <HintPath>..\..\bagimliliklar\LibreHardwareMonitor\LibreHardwareMonitorLib.dll</HintPath>
     </Reference>
+    <!-- Disklerin bölüm tablosu (sürücü harfleri) için; LibreHardwareMonitor diskleri bununla okuyor -->
+    <Reference Include="DiskInfoToolkit">
+      <HintPath>..\..\bagimliliklar\LibreHardwareMonitor\DiskInfoToolkit.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />

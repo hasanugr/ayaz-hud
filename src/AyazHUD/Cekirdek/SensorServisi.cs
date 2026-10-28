@@ -18,6 +18,10 @@ namespace AyazHUD.Cekirdek
         readonly HashSet<string> _donenFanlar = new HashSet<string>();
         volatile Anlik _son = new Anlik();
 
+        // Uykudaki sabit diskin sıcaklığı açılışta okunamayabiliyor ve disk sonradan uyansa da sensörü eklenmiyor.
+        // Sıcaklığı okunamayan disk varsa diskler açılıştan şu kadar saniye sonra yeniden taranır.
+        static readonly int[] YenidenTarama = { 60, 180, 600, 1800 };
+
         public Anlik Son => _son;
 
         public SensorServisi()
@@ -52,6 +56,7 @@ namespace AyazHUD.Cekirdek
             var saat = Stopwatch.StartNew();
             Secim secim = null;
             long sonSecim = 0;
+            int tarama = 0;
             for (int tur = 0; ; tur++)
             {
                 long bas = saat.ElapsedMilliseconds;
@@ -67,6 +72,11 @@ namespace AyazHUD.Cekirdek
                         secim = DonanimTanima.Sec(bilgisayar);
                         sonSecim = bas;
                         if (tur == 3) Gunluk.Yaz(secim.Ozet());
+                        if (secim.SicakliksizDiskler.Count > 0 && tarama < YenidenTarama.Length && bas >= YenidenTarama[tarama] * 1000L)
+                        {
+                            tarama++;
+                            secim = DiskleriYenidenTara(bilgisayar, secim, tarama);
+                        }
                     }
                     else
                     {
@@ -91,6 +101,27 @@ namespace AyazHUD.Cekirdek
             catch (Exception e)
             {
                 Gunluk.Yaz("Sensörler kapatılamadı", e);
+            }
+        }
+
+        /// <summary>Disk okuyucusunu kapatıp açar; diskler ve sensörleri baştan bulunur, seçim yenilenir.</summary>
+        static Secim DiskleriYenidenTara(Computer bilgisayar, Secim eski, int kacinci)
+        {
+            Gunluk.Yaz($"Sıcaklığı okunamayan diskler yeniden taranıyor ({kacinci}. kez): {string.Join(", ", eski.SicakliksizDiskler)}");
+            try
+            {
+                bilgisayar.IsStorageEnabled = false;
+                bilgisayar.IsStorageEnabled = true;
+                foreach (var h in bilgisayar.Hardware.Where(h => h.HardwareType == HardwareType.Storage)) Guncelle(h);
+                var yeni = DonanimTanima.Sec(bilgisayar);
+                Gunluk.Yaz("Taramadan sonra diskler: " + (yeni.Diskler.Count == 0 ? "-" : string.Join(", ", yeni.Diskler.Select(d => d.Ad))) +
+                           (yeni.SicakliksizDiskler.Count > 0 ? "; hâlâ okunamayan: " + string.Join(", ", yeni.SicakliksizDiskler) : ""));
+                return yeni;
+            }
+            catch (Exception e)
+            {
+                Gunluk.Yaz("Diskler yeniden taranamadı", e);
+                return DonanimTanima.Sec(bilgisayar);
             }
         }
 

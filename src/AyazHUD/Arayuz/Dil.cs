@@ -68,6 +68,7 @@ namespace AyazHUD.Arayuz
             ["fps.izinYok"] = ("Yönetici izni gerekiyor", "Needs admin permission"),
             ["fps.hata"] = ("FPS ölçülemiyor", "Can't measure FPS"),
             ["fps.bekleniyor"] = ("Oyun bekleniyor", "Waiting for a game"),
+            ["sogutmaBos"] = ("Gösterilecek fan ya da disk yok", "No fans or disks to show"),
             ["tarihBicimi"] = ("d MMMM dddd", "dddd, MMMM d"),
 
             // ---------- Stiller ----------
