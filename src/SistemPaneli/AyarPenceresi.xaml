@@ -222,6 +222,18 @@
                         <StackPanel>
                             <TextBlock Style="{StaticResource AltBaslik}" Text="Kart stili" />
                             <WrapPanel x:Name="GenelStiller" />
+                            <DockPanel Margin="0,12,0,0">
+                                <TextBlock x:Name="GenelBuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                <TextBlock Text="Kart buzlanması" />
+                            </DockPanel>
+                            <Slider x:Name="GenelBuzlanma" Minimum="1" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                            <DockPanel Margin="0,18,0,0">
+                                <TextBlock x:Name="GenelKoyulukYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                <TextBlock Text="Kart koyuluğu" />
+                            </DockPanel>
+                            <Slider x:Name="GenelKoyuluk" Minimum="0" Maximum="90" IsSnapToTickEnabled="True" TickFrequency="1" LargeChange="5" Margin="0,8,0,0" />
+                            <TextBlock Style="{StaticResource Aciklama}" Margin="0,6,0,0"
+                                       Text="Buzlanma, buzlu cam ve akrilik stillerde kartın arkasını ne kadar bulanıklaştıracağını belirler. Açık renkli duvar kâğıtlarında yazıların okunması için koyuluğu artır." />
                         </StackPanel>
                     </Border>
 
@@ -229,12 +241,6 @@
                         <StackPanel>
                             <TextBlock Style="{StaticResource AltBaslik}" Text="Vurgu rengi" />
                             <StackPanel x:Name="GenelRenkler" Orientation="Horizontal" />
-                            <DockPanel Margin="0,22,0,0">
-                                <TextBlock x:Name="GenelKoyulukYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
-                                <TextBlock Text="Kart koyuluğu" />
-                            </DockPanel>
-                            <Slider x:Name="GenelKoyuluk" Minimum="0" Maximum="90" IsSnapToTickEnabled="True" TickFrequency="1" LargeChange="5" Margin="0,8,0,0" />
-                            <TextBlock Style="{StaticResource Aciklama}" Margin="0,6,0,0" Text="Açık renkli duvar kâğıtlarında yazıların okunması için koyuluğu artır." />
                         </StackPanel>
                     </Border>
 
@@ -245,18 +251,21 @@
                                 <ColumnDefinition Width="200" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,24,0">
-                                <CheckBox x:Name="Buzlanma" Style="{StaticResource Anahtar}">
-                                    <TextBlock Text="Arka plan buzlanması" FontSize="15" FontWeight="SemiBold" />
-                                </CheckBox>
-                                <TextBlock Style="{StaticResource Aciklama}" Margin="0,8,0,0"
-                                           Text="Widget'ların bulunduğu ekranın tamamını buzlu cam gibi bulanıklaştırır. Duvar kâğıdı geri planda kalır, widget'lar öne çıkar. Tıklamalar masaüstüne geçmeye devam eder." />
+                                <TextBlock Style="{StaticResource AltBaslik}" Text="Arka plan" />
+                                <TextBlock Style="{StaticResource Aciklama}"
+                                           Text="Widget'ların bulunduğu ekranın tamamına uygulanır; tıklamalar masaüstüne geçmeye devam eder. Hareketli ya da çok renkli duvar kâğıtlarında buzlanma, açık renkli olanlarda karartma widget'ları öne çıkarır." />
                                 <DockPanel Margin="0,18,0,0">
-                                    <TextBlock x:Name="BuzKoyulukYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
-                                    <TextBlock Text="Koyulaştırma" />
+                                    <TextBlock x:Name="BuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                    <TextBlock Text="Buzlanma" />
                                 </DockPanel>
-                                <Slider x:Name="BuzKoyuluk" Minimum="0" Maximum="70" IsSnapToTickEnabled="True" TickFrequency="1" LargeChange="5" Margin="0,8,0,0" />
+                                <Slider x:Name="Buzlanma" Minimum="0" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                                <DockPanel Margin="0,18,0,0">
+                                    <TextBlock x:Name="KarartmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                    <TextBlock Text="Karartma" />
+                                </DockPanel>
+                                <Slider x:Name="Karartma" Minimum="0" Maximum="70" IsSnapToTickEnabled="True" TickFrequency="1" LargeChange="5" Margin="0,8,0,0" />
                             </StackPanel>
-                            <Border Grid.Column="1" CornerRadius="8" ClipToBounds="True" Height="124" VerticalAlignment="Top">
+                            <Border Grid.Column="1" CornerRadius="8" ClipToBounds="True" Height="140" VerticalAlignment="Center">
                                 <a:StilOnizleme x:Name="BuzOnizleme" />
                             </Border>
                         </Grid>
@@ -301,11 +310,18 @@
                                 <Border Height="1" Background="{StaticResource KutuCizgi}" Margin="0,16" />
                                 <CheckBox x:Name="OzelGorunum" Style="{StaticResource Anahtar}" Content="Bu widget'a ayrı görünüm ver" />
                                 <StackPanel x:Name="OzelAyarlar" Margin="0,16,0,0">
-                                    <TextBlock Text="Kart stili" Margin="0,0,0,10" />
-                                    <WrapPanel x:Name="OzelStiller" />
-                                    <TextBlock Text="Vurgu rengi" Margin="0,10,0,10" />
+                                    <StackPanel x:Name="OzelKartAyarlari">
+                                        <TextBlock Text="Kart stili" Margin="0,0,0,10" />
+                                        <WrapPanel x:Name="OzelStiller" />
+                                        <DockPanel Margin="0,8,0,0">
+                                            <TextBlock x:Name="OzelBuzlanmaYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
+                                            <TextBlock Text="Kart buzlanması" />
+                                        </DockPanel>
+                                        <Slider x:Name="OzelBuzlanma" Minimum="1" Maximum="3" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="1" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                    <TextBlock Text="Vurgu rengi" Margin="0,18,0,10" />
                                     <StackPanel x:Name="OzelRenkler" Orientation="Horizontal" />
-                                    <DockPanel Margin="0,20,0,0">
+                                    <DockPanel x:Name="OzelKoyulukSatiri" Margin="0,20,0,0">
                                         <TextBlock x:Name="OzelKoyulukYazisi" DockPanel.Dock="Right" Foreground="{StaticResource Soluk}" />
                                         <TextBlock Text="Kart koyuluğu" />
                                     </DockPanel>

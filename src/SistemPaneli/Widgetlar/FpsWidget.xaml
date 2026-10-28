@@ -16,10 +16,12 @@
             <TextBlock x:Name="Bos" FontSize="32" FontWeight="Light" VerticalAlignment="Center" Margin="0,8,0,0"
                        TextTrimming="CharacterEllipsis" Visibility="Collapsed" />
         </Grid>
-        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-            <a:KucukDeger x:Name="Dusuk" Etiket="%1 düşük" Margin="0,0,32,0" />
-            <a:KucukDeger x:Name="KareSuresi" Etiket="Kare süresi" Birim="ms" />
-        </StackPanel>
+        <!-- En düşük %1: takılmaları gösterir. Kare süresi: 1000 / FPS. Gecikme: kare başlangıcından ekrana kadar. -->
+        <UniformGrid Columns="3" Margin="0,8,0,0">
+            <a:KucukDeger x:Name="Dusuk" Etiket="En düşük %1" Birim="FPS" Margin="0,0,12,0" />
+            <a:KucukDeger x:Name="KareSuresi" Etiket="Kare süresi" Birim="ms" Margin="0,0,12,0" />
+            <a:KucukDeger x:Name="Gecikme" Etiket="Gecikme" Birim="ms" />
+        </UniformGrid>
         <a:CizgiGrafik x:Name="Grafik" Height="44" Margin="0,14.4,0,0" />
     </StackPanel>
 </UserControl>

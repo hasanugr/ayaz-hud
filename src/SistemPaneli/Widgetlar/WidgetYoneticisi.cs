@@ -99,48 +99,43 @@ namespace SistemPaneli.Widgetlar
             var w = _ayarlar.Widget(p.Kimlik);
             bool ozel = w.OzelGorunum;
             if (!Tema.RenkCoz(ozel ? w.Vurgu : null, out var renk) && !Tema.RenkCoz(_ayarlar.Vurgu, out renk)) renk = Tema.VarsayilanVurgu;
-            p.Gorunum.Uygula(renk, ozel ? w.Koyuluk : _ayarlar.Koyuluk, Gorunum.StilCoz(ozel ? w.Stil : _ayarlar.Stil));
+            p.Gorunum.Uygula(renk, ozel ? w.Koyuluk : _ayarlar.Koyuluk, Gorunum.StilCoz(ozel ? w.Stil : _ayarlar.Stil),
+                ozel ? w.Buzlanma : _ayarlar.Buzlanma);
         }
 
         readonly List<BuzKatmani> _buzlar = new List<BuzKatmani>();
 
-        /// <summary>Arka plan buzlanması açıksa widget'ların bulunduğu her monitöre bir buz katmanı koyar.</summary>
+        /// <summary>Arka plan ayarı açıksa widget'ların bulunduğu her monitöre buzlanma/karartma katmanı koyar.</summary>
         void BuzUygula()
         {
             var acik = _pencereler.Values.Where(p => p.IsVisible).ToList();
             var ekranlar = Ekran.Hepsi();
-            var gereken = !_ayarlar.ArkaPlanBuzu ? new List<Ekran>() : acik
-                .Select(p =>
-                {
-                    var r = p.Dikdortgen;
-                    return Ekran.Iceren(ekranlar, r.Left + r.Genislik / 2, r.Top + r.Yukseklik / 2);
-                })
-                .Where(e => e != null).GroupBy(e => e.Ad).Select(g => g.First()).ToList();
+            Ekran EkraniBul(WidgetPenceresi p)
+            {
+                var r = p.Dikdortgen;
+                return Ekran.Iceren(ekranlar, r.Left + r.Genislik / 2, r.Top + r.Yukseklik / 2);
+            }
+            var gereken = !_ayarlar.ArkaPlanAcik ? new List<Ekran>() : acik
+                .Select(EkraniBul).Where(e => e != null).GroupBy(e => e.Ad).Select(g => g.First()).ToList();
 
-            // Katman kapanınca sahipli pencereler de kapanır; önce widget'lar ayrılır
-            foreach (var p in acik) p.Owner = null;
+            // Katman kapanınca ona bağlı pencereler de kapanır; önce widget'lar ayrılır
+            foreach (var p in acik) p.TabanSahip = null;
             foreach (var b in _buzlar.Where(b => gereken.All(e => e.Ad != b.EkranAdi)).ToList())
             {
-                b.Close();
+                b.Kapat();
                 _buzlar.Remove(b);
             }
             foreach (var e in gereken)
             {
                 var b = _buzlar.FirstOrDefault(x => x.EkranAdi == e.Ad);
-                if (b == null)
-                {
-                    b = new BuzKatmani(e, _ayarlar.ArkaPlanKoyuluk);
-                    _buzlar.Add(b);
-                    b.Show();
-                }
-                b.Koyuluk = _ayarlar.ArkaPlanKoyuluk;
+                if (b == null) _buzlar.Add(b = new BuzKatmani(e));
+                b.Ayarla(_ayarlar.ArkaPlanBuzlanma, _ayarlar.ArkaPlanKarartma);
                 b.Yerlestir(e);
             }
             foreach (var p in acik)
             {
-                var r = p.Dikdortgen;
-                var e = Ekran.Iceren(ekranlar, r.Left + r.Genislik / 2, r.Top + r.Yukseklik / 2);
-                p.Owner = _buzlar.FirstOrDefault(b => b.EkranAdi == e?.Ad);
+                var e = EkraniBul(p);
+                p.TabanSahip = _buzlar.FirstOrDefault(b => b.EkranAdi == e?.Ad)?.Ust;
             }
         }
 
@@ -171,11 +166,11 @@ namespace SistemPaneli.Widgetlar
         {
             foreach (var p in _pencereler.Values)
             {
-                p.Owner = null;
+                p.TabanSahip = null;
                 p.Close();
             }
             _pencereler.Clear();
-            foreach (var b in _buzlar) b.Close();
+            foreach (var b in _buzlar) b.Kapat();
             _buzlar.Clear();
         }
 
@@ -286,8 +281,8 @@ namespace SistemPaneli.Widgetlar
             w.X = r.Left + dx - ekran.Alan.Left;
             w.Y = r.Top + dy - ekran.Alan.Top;
             _kaydet();
-            // Başka monitöre taşındıysa buz katmanı da onu izlesin
-            if (_ayarlar.ArkaPlanBuzu) BuzUygula();
+            // Başka monitöre taşındıysa arka plan katmanı da onu izlesin
+            if (_ayarlar.ArkaPlanAcik) BuzUygula();
         }
     }
 }

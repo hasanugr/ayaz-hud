@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -32,7 +33,7 @@ namespace SistemPaneli.Widgetlar
         // Bulanıklık katmanı pencerenin dikdörtgenini kaplıyor ve SetWindowRgn ile kırpılamıyor (katmanlı pencere).
         // Windows 11'in kendi köşe yuvarlaması bulanıklığı da kırpıyor ama yarıçapı sabit 8 px; kart da ona uyar.
         // Windows 10'da yuvarlama yok, kart köşeli çizilir ki köşelerden bulanıklık taşmasın.
-        static readonly bool Windows11 = Environment.OSVersion.Version.Build >= 22000;
+        internal static readonly bool Windows11 = Environment.OSVersion.Version.Build >= 22000;
         public static readonly double KoseYaricapi = Windows11 ? 8 : 0;
 
         public string Kimlik { get; }
@@ -53,6 +54,10 @@ namespace SistemPaneli.Widgetlar
         readonly DropShadowEffect _yaziGolgesi = new DropShadowEffect { Color = Colors.Black, Opacity = 0.6, BlurRadius = 10, ShadowDepth = 1, Direction = 270 };
         bool _duzenleme, _surukleniyor;
         (int X, int Y)? _hedef;
+
+        // Buzlanmayı güçlendiren, kartın hemen arkasındaki ek bulanık katmanlar (orta: 1, güçlü: 2)
+        readonly List<KatmanPenceresi> _ekKatmanlar = new List<KatmanPenceresi>();
+        Window _tabanSahip;
 
         public WidgetPenceresi(string kimlik, IWidget icerik, bool kartli)
         {
@@ -78,6 +83,7 @@ namespace SistemPaneli.Widgetlar
             {
                 CamUygula();
                 GolgeUygula();
+                EkKatmanlariKur();
             };
 
             _kok = new Grid();
@@ -123,6 +129,65 @@ namespace SistemPaneli.Widgetlar
                 if (_hedef is (int x, int y) && !_surukleniyor)
                     Dispatcher.BeginInvoke(new Action(() => KonumaGit(x, y)));
             };
+            // Ek katmanlar kartı izler
+            LocationChanged += (s, e) => EkKatmanlariYerlestir();
+            SizeChanged += (s, e) => EkKatmanlariYerlestir();
+            IsVisibleChanged += (s, e) => EkKatmanlariKur();
+            Closed += (s, e) =>
+            {
+                Owner = null;
+                foreach (var k in _ekKatmanlar) k.Close();
+                _ekKatmanlar.Clear();
+            };
+        }
+
+        /// <summary>
+        /// Pencerenin altında kalacağı pencere (arka plan katmanı ya da yok). Ek katmanlar varsa sıra:
+        /// taban sahip, ek katmanlar, widget.
+        /// </summary>
+        public Window TabanSahip
+        {
+            get => _tabanSahip;
+            set
+            {
+                _tabanSahip = value;
+                EkKatmanlariKur();
+            }
+        }
+
+        void EkKatmanlariKur()
+        {
+            int gereken = Kartli && IsVisible && Gorunum.Bulanik ? Gorunum.Buzlanma - 1 : 0;
+            var cam = Gorunum.Stil == KartStili.Akrilik ? Win32.AccentState.Akrilik : Win32.AccentState.Bulanik;
+            if (_ekKatmanlar.Count != gereken || (_ekKatmanlar.Count > 0 && _ekKatmanlar[0].Cam != cam))
+            {
+                // Sahip pencere kapanınca ona bağlı pencereler de kapanır; önce bağlar çözülür
+                Owner = null;
+                foreach (var k in _ekKatmanlar) k.Owner = null;
+                foreach (var k in _ekKatmanlar) k.Close();
+                _ekKatmanlar.Clear();
+                for (int i = 0; i < gereken; i++)
+                {
+                    var k = new KatmanPenceresi(cam, true);
+                    _ekKatmanlar.Add(k);
+                    k.Show();
+                }
+            }
+            Window onceki = _tabanSahip;
+            foreach (var k in _ekKatmanlar)
+            {
+                if (k.Owner != onceki) k.Owner = onceki;
+                onceki = k;
+            }
+            if (Owner != onceki) Owner = onceki;
+            EkKatmanlariYerlestir();
+        }
+
+        void EkKatmanlariYerlestir()
+        {
+            if (_ekKatmanlar.Count == 0 || Tutamac == IntPtr.Zero) return;
+            var r = Dikdortgen;
+            foreach (var k in _ekKatmanlar) k.Yerlestir(r.Left, r.Top, r.Genislik, r.Yukseklik);
         }
 
         protected override void OnSourceInitialized(EventArgs e)

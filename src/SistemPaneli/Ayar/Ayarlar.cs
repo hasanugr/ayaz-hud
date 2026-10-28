@@ -19,10 +19,16 @@ namespace SistemPaneli.Ayar
         [DataMember(Order = 2)] public double Koyuluk { get; set; }
         /// <summary>Kart stili: Bulanik, Akrilik, Koyu, Seffaf (bkz. Arayuz.KartStili).</summary>
         [DataMember(Order = 3)] public string Stil { get; set; }
+        /// <summary>Kartların buzlanma gücü: 1 hafif, 2 orta, 3 güçlü.</summary>
+        [DataMember(Order = 8)] public int Buzlanma { get; set; }
 
-        // ---------- Arka plan buzlanması: widget'ların olduğu ekranın tamamını bulanıklaştırır ----------
-        [DataMember(Order = 4)] public bool ArkaPlanBuzu { get; set; }
-        [DataMember(Order = 5)] public double ArkaPlanKoyuluk { get; set; }
+        // ---------- Arka plan: widget'ların olduğu ekranın tamamını buzlar ve/veya karartır ----------
+        /// <summary>0 = yok, 1 hafif, 2 orta, 3 güçlü.</summary>
+        [DataMember(Order = 4)] public int ArkaPlanBuzlanma { get; set; }
+        /// <summary>0–0,7.</summary>
+        [DataMember(Order = 5)] public double ArkaPlanKarartma { get; set; }
+
+        public bool ArkaPlanAcik => ArkaPlanBuzlanma > 0 || ArkaPlanKarartma > 0.005;
 
         [DataMember(Order = 6)] public List<WidgetAyari> Widgetlar { get; set; }
         /// <summary>Fan ve disklere verilen adlar ve gizlenenler (anahtar: sensör kimliği).</summary>
@@ -39,8 +45,9 @@ namespace SistemPaneli.Ayar
             Vurgu = "#7DD3FC";
             Koyuluk = 0.45;
             Stil = "Bulanik";
-            ArkaPlanBuzu = false;
-            ArkaPlanKoyuluk = 0.2;
+            Buzlanma = 1;
+            ArkaPlanBuzlanma = 0;
+            ArkaPlanKarartma = 0;
             Widgetlar = new List<WidgetAyari>();
             Etiketler = new List<SensorEtiketi>();
         }
@@ -129,6 +136,7 @@ namespace SistemPaneli.Ayar
         [DataMember(Order = 7)] public string Stil { get; set; }
         [DataMember(Order = 8)] public string Vurgu { get; set; }
         [DataMember(Order = 9)] public double Koyuluk { get; set; }
+        [DataMember(Order = 10)] public int Buzlanma { get; set; }
     }
 
     [DataContract]

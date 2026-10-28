@@ -35,6 +35,7 @@ namespace SistemPaneli.Widgetlar
                 Deger.Text = f.Deger.ToString(Bicim.Tr);
                 Dusuk.Deger = f.Yuzde1Dusuk.ToString(Bicim.Tr);
                 KareSuresi.Deger = Bicim.Sayi(f.KareSuresi, 1);
+                Gecikme.Deger = Bicim.Sayi(f.Gecikme, f.Gecikme < 100 ? 1 : 0);
                 Baslik.Sag = f.Uygulama;
                 Grafik.Ekle(f.Deger);
             }
@@ -45,6 +46,7 @@ namespace SistemPaneli.Widgetlar
                          : "Oyun bekleniyor";
                 Dusuk.Deger = "--";
                 KareSuresi.Deger = "--";
+                Gecikme.Deger = "--";
                 Baslik.Sag = "";
                 Grafik.Ekle(0);
             }

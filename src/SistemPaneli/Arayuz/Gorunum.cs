@@ -34,9 +34,13 @@ namespace SistemPaneli.Arayuz
 
         public static void Ata(DependencyObject d, Gorunum g) => d.SetValue(OrnekProperty, g);
 
+        public const int EnGucluBuzlanma = 3;
+
         public Color VurguRengi { get; private set; } = Color.FromRgb(125, 211, 252);
         public double Koyuluk { get; private set; } = 0.45;
         public KartStili Stil { get; private set; } = KartStili.Bulanik;
+        /// <summary>Bulanık stillerde buzlanma gücü: 1 hafif, 2 orta, 3 güçlü (kartın arkasındaki bulanık katman sayısı).</summary>
+        public int Buzlanma { get; private set; } = 1;
 
         public readonly SolidColorBrush Vurgu = new SolidColorBrush();
         public readonly SolidColorBrush Baslik = new SolidColorBrush();      // vurgu %95
@@ -49,15 +53,16 @@ namespace SistemPaneli.Arayuz
         /// <summary>Renk ya da stil değişti; fırça dışında renk kullanan denetimler (parıltılar) kendini yeniler.</summary>
         public event Action Degisti;
 
-        public Gorunum() => Uygula(VurguRengi, Koyuluk, Stil);
+        public Gorunum() => Uygula(VurguRengi, Koyuluk, Stil, Buzlanma);
 
         public bool Bulanik => Stil == KartStili.Bulanik || Stil == KartStili.Akrilik;
 
-        public void Uygula(Color vurgu, double koyuluk, KartStili stil)
+        public void Uygula(Color vurgu, double koyuluk, KartStili stil, int buzlanma)
         {
             VurguRengi = vurgu;
             Koyuluk = Math.Max(0, Math.Min(0.95, koyuluk));
             Stil = stil;
+            Buzlanma = Math.Max(1, Math.Min(EnGucluBuzlanma, buzlanma));
 
             Vurgu.Color = vurgu;
             Baslik.Color = Tema.Alfa(vurgu, 0.95);

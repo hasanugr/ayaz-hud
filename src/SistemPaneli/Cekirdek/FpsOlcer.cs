@@ -41,6 +41,8 @@ namespace SistemPaneli.Cekirdek
         struct Kare
         {
             public double Zaman, Ms;
+            /// <summary>Karenin hazırlanmaya başlamasından ekranda görünmesine kadar geçen süre; ekrana çıkmadıysa NaN.</summary>
+            public double Gecikme;
         }
 
         readonly string _exe;
@@ -72,9 +74,11 @@ namespace SistemPaneli.Cekirdek
                 return;
             }
 
+            // Varsayılan (2.x) ölçümler: kare süresi ve görüntü gecikmesi (DisplayLatency). Gecikme için karelerin
+            // ekrana çıkışı izlenir; ekran kartı ve fare/klavye izlenmez.
             var bilgi = new ProcessStartInfo(_exe,
-                "--output_stdout --no_console_stats --v1_metrics --session_name SistemPaneli --stop_existing_session " +
-                "--no_track_input --no_track_gpu --no_track_display")
+                "--output_stdout --no_console_stats --session_name SistemPaneli --stop_existing_session " +
+                "--no_track_input --no_track_gpu")
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -106,7 +110,7 @@ namespace SistemPaneli.Cekirdek
 
         void Oku(Process p, StringBuilder hata)
         {
-            int ad = -1, pid = -1, ms = -1;
+            int ad = -1, pid = -1, ms = -1, gecikme = -1;
             bool baslik = true;
             try
             {
@@ -117,25 +121,31 @@ namespace SistemPaneli.Cekirdek
                     var alan = satir.Split(',');
                     if (baslik)
                     {
-                        // CSV başlığından gerekli sütunların yerini bul
-                        ad = Array.FindIndex(alan, a => a.Equals("Application", StringComparison.OrdinalIgnoreCase));
-                        pid = Array.FindIndex(alan, a => a.Equals("ProcessID", StringComparison.OrdinalIgnoreCase));
-                        ms = Array.FindIndex(alan, a => a.Equals("msBetweenPresents", StringComparison.OrdinalIgnoreCase));
+                        // CSV başlığından gerekli sütunların yerini bul (sürümler arasında adlar değişebiliyor)
+                        int Sutun(params string[] adlar) => Array.FindIndex(alan, a => adlar.Any(x => a.Equals(x, StringComparison.OrdinalIgnoreCase)));
+                        ad = Sutun("Application");
+                        pid = Sutun("ProcessID");
+                        ms = Sutun("MsBetweenPresents", "FrameTime", "MsBetweenAppStart");
+                        gecikme = Sutun("DisplayLatency", "MsDisplayLatency");
                         if (ad < 0 || pid < 0 || ms < 0) Gunluk.Yaz("PresentMon başlığı beklenmedik: " + satir);
+                        else if (gecikme < 0) Gunluk.Yaz("PresentMon gecikme sütunu yok: " + satir);
                         baslik = false;
                         _hal = FpsHali.OyunYok;
-                        Gunluk.Yaz("PresentMon başladı");
+                        Gunluk.Yaz("PresentMon başladı, sütunlar: " + satir);
                         continue;
                     }
-                    if (ad < 0 || pid < 0 || ms < 0 || alan.Length <= Math.Max(ad, Math.Max(pid, ms))) continue;
+                    if (ad < 0 || pid < 0 || ms < 0 || alan.Length <= Math.Max(ad, Math.Max(pid, Math.Max(ms, gecikme)))) continue;
                     if (!double.TryParse(alan[ms], NumberStyles.Float, CultureInfo.InvariantCulture, out double sure) || sure <= 0 || sure > 1000) continue;
                     if (!int.TryParse(alan[pid], out int no)) continue;
+                    // Ekrana çıkmayan karelerde gecikme "NA" yazar
+                    if (gecikme < 0 || !double.TryParse(alan[gecikme], NumberStyles.Float, CultureInfo.InvariantCulture, out double gec) || gec <= 0 || gec > 1000)
+                        gec = double.NaN;
 
                     double t = Simdi;
                     lock (_kilit)
                     {
                         if (!_surecler.TryGetValue(no, out var s)) _surecler[no] = s = new Surec { Ad = alan[ad] };
-                        s.Kareler.Enqueue(new Kare { Zaman = t, Ms = sure });
+                        s.Kareler.Enqueue(new Kare { Zaman = t, Ms = sure, Gecikme = gec });
                         while (s.Kareler.Peek().Zaman < t - DusukPencereMs) s.Kareler.Dequeue();
                     }
                 }
@@ -205,12 +215,14 @@ namespace SistemPaneli.Cekirdek
                 var sureler = enIyi.Kareler.Select(k => k.Ms).OrderByDescending(x => x).ToList();
                 int adet = Math.Max(1, sureler.Count / 100);
                 double yavas = sureler.Take(adet).Average();
+                var gecikmeler = enIyiSon.Where(k => !double.IsNaN(k.Gecikme)).Select(k => k.Gecikme).ToList();
                 return new FpsDurumu
                 {
                     Hal = FpsHali.Tamam,
                     Deger = (int)Math.Round(enIyiFps),
                     Yuzde1Dusuk = (int)Math.Round(1000 / yavas),
                     KareSuresi = Math.Round(enIyiSon.Average(k => k.Ms), 1),
+                    Gecikme = gecikmeler.Count == 0 ? (double?)null : Math.Round(gecikmeler.Average(), 1),
                     Uygulama = Regex.Replace(enIyi.Ad, @"\.exe$", "", RegexOptions.IgnoreCase),
                 };
             }

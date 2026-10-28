@@ -79,6 +79,15 @@ namespace SistemPaneli
             _genelStil?.Yenile();
             _ozelStil?.Yenile();
             BuzOnizlemeYenile();
+            BuzlanmaEtkinlikleri();
+        }
+
+        /// <summary>Buzlanma yalnızca buzlu cam ve akrilik stillerde anlamlı.</summary>
+        void BuzlanmaEtkinlikleri()
+        {
+            bool Bulanik(string stil) => Gorunum.StilCoz(stil) == KartStili.Bulanik || Gorunum.StilCoz(stil) == KartStili.Akrilik;
+            GenelBuzlanma.IsEnabled = Bulanik(_ayarlar.Stil);
+            if (_seciliWidget != null) OzelBuzlanma.IsEnabled = Bulanik(_ayarlar.Widget(_seciliWidget).Stil ?? _ayarlar.Stil);
         }
 
         static Color Renk(string metin) => Tema.RenkCoz(metin, out var c) ? c : Tema.VarsayilanVurgu;
@@ -90,26 +99,47 @@ namespace SistemPaneli
             _genelStil = new StilSecici(GenelStiller,
                 () => Gorunum.StilCoz(_ayarlar.Stil),
                 s => { _ayarlar.Stil = s.ToString(); Uygula(); },
-                () => (Renk(_ayarlar.Vurgu), _ayarlar.Koyuluk));
+                () => (Renk(_ayarlar.Vurgu), _ayarlar.Koyuluk, _ayarlar.Buzlanma));
             _genelRenk = new RenkSecici(GenelRenkler, () => _ayarlar.Vurgu, r => { _ayarlar.Vurgu = r; Uygula(); });
 
             KaydiriciBagla(GenelKoyuluk, GenelKoyulukYazisi, () => _ayarlar.Koyuluk, v => _ayarlar.Koyuluk = v);
-            KaydiriciBagla(BuzKoyuluk, BuzKoyulukYazisi, () => _ayarlar.ArkaPlanKoyuluk, v => _ayarlar.ArkaPlanKoyuluk = v);
+            BuzlanmaBagla(GenelBuzlanma, GenelBuzlanmaYazisi, () => _ayarlar.Buzlanma, v => _ayarlar.Buzlanma = v);
+            KaydiriciBagla(Karartma, KarartmaYazisi, () => _ayarlar.ArkaPlanKarartma, v => _ayarlar.ArkaPlanKarartma = v);
 
-            Buzlanma.IsChecked = _ayarlar.ArkaPlanBuzu;
-            Buzlanma.Click += (s, e) =>
+            Buzlanma.Value = _ayarlar.ArkaPlanBuzlanma;
+            BuzlanmaYazisi.Text = BuzlanmaAdlari[_ayarlar.ArkaPlanBuzlanma];
+            Buzlanma.ValueChanged += (s, e) =>
             {
-                _ayarlar.ArkaPlanBuzu = Buzlanma.IsChecked == true;
+                int seviye = (int)Math.Round(Buzlanma.Value);
+                BuzlanmaYazisi.Text = BuzlanmaAdlari[seviye];
+                if (_yukleniyor) return;
+                _ayarlar.ArkaPlanBuzlanma = seviye;
                 Uygula();
             };
             BuzOnizlemeYenile();
         }
 
+        static readonly string[] BuzlanmaAdlari = { "Kapalı", "Hafif", "Orta", "Güçlü" };
+
         void BuzOnizlemeYenile()
         {
-            BuzOnizleme.Ayarla(Gorunum.StilCoz(_ayarlar.Stil), Renk(_ayarlar.Vurgu), _ayarlar.Koyuluk);
-            BuzOnizleme.Buzlanma(_ayarlar.ArkaPlanBuzu, _ayarlar.ArkaPlanKoyuluk);
-            BuzKoyuluk.IsEnabled = _ayarlar.ArkaPlanBuzu;
+            BuzOnizleme.Ayarla(Gorunum.StilCoz(_ayarlar.Stil), Renk(_ayarlar.Vurgu), _ayarlar.Koyuluk, _ayarlar.Buzlanma);
+            BuzOnizleme.Buzlanma(_ayarlar.ArkaPlanBuzlanma, _ayarlar.ArkaPlanKarartma);
+        }
+
+        /// <summary>Kart buzlanması kaydırıcısı (1 hafif, 2 orta, 3 güçlü).</summary>
+        void BuzlanmaBagla(Slider kaydirici, TextBlock yazi, Func<int> oku, Action<int> yaz)
+        {
+            kaydirici.Value = Math.Max(1, oku());
+            yazi.Text = BuzlanmaAdlari[(int)kaydirici.Value];
+            kaydirici.ValueChanged += (s, e) =>
+            {
+                int seviye = (int)Math.Round(kaydirici.Value);
+                yazi.Text = BuzlanmaAdlari[seviye];
+                if (_yukleniyor) return;
+                yaz(seviye);
+                Uygula();
+            };
         }
 
         void KaydiriciBagla(Slider kaydirici, TextBlock yazi, Func<double> oku, Action<double> yaz)
@@ -147,6 +177,7 @@ namespace SistemPaneli
                     w.Stil = _ayarlar.Stil;
                     w.Vurgu = _ayarlar.Vurgu;
                     w.Koyuluk = _ayarlar.Koyuluk;
+                    w.Buzlanma = _ayarlar.Buzlanma;
                 }
                 WidgetAyarlariniYaz();
                 Uygula();
@@ -157,8 +188,12 @@ namespace SistemPaneli
                 () =>
                 {
                     var w = _ayarlar.Widget(_seciliWidget ?? "islemci");
-                    return (Renk(w.Vurgu ?? _ayarlar.Vurgu), w.Koyuluk);
+                    return (Renk(w.Vurgu ?? _ayarlar.Vurgu), w.Koyuluk, w.Buzlanma);
                 });
+            BuzlanmaBagla(OzelBuzlanma, OzelBuzlanmaYazisi, () => _ayarlar.Widget(_seciliWidget ?? "islemci").Buzlanma, v =>
+            {
+                if (_seciliWidget != null) _ayarlar.Widget(_seciliWidget).Buzlanma = v;
+            });
             _ozelRenk = new RenkSecici(OzelRenkler, () => _ayarlar.Widget(_seciliWidget ?? "islemci").Vurgu, r => { _ayarlar.Widget(_seciliWidget).Vurgu = r; Uygula(); });
             OzelKoyuluk.ValueChanged += (s, e) =>
             {
@@ -190,9 +225,15 @@ namespace SistemPaneli
             OzelAyarlar.IsEnabled = w.OzelGorunum;
             OzelAyarlar.Opacity = w.OzelGorunum ? 1 : 0.4;
             // Saatin kartı yok; yalnızca renk ayarı anlamlı
-            OzelStiller.Visibility = t.Kart ? Visibility.Visible : Visibility.Collapsed;
+            var kartGorunumu = t.Kart ? Visibility.Visible : Visibility.Collapsed;
+            OzelKartAyarlari.Visibility = kartGorunumu;
+            OzelKoyulukSatiri.Visibility = kartGorunumu;
+            OzelKoyuluk.Visibility = kartGorunumu;
             OzelKoyuluk.Value = Math.Round((w.OzelGorunum ? w.Koyuluk : _ayarlar.Koyuluk) * 100);
             OzelKoyulukYazisi.Text = $"%{OzelKoyuluk.Value:0}";
+            OzelBuzlanma.Value = Math.Max(1, w.OzelGorunum ? w.Buzlanma : _ayarlar.Buzlanma);
+            OzelBuzlanmaYazisi.Text = BuzlanmaAdlari[(int)OzelBuzlanma.Value];
+            BuzlanmaEtkinlikleri();
             _ozelStil.Yenile();
             _ozelRenk.Yenile();
             _yukleniyor = eski;
@@ -306,9 +347,9 @@ namespace SistemPaneli
         {
             readonly List<(KartStili Stil, Border Cerceve, StilOnizleme Onizleme)> _kutular = new List<(KartStili, Border, StilOnizleme)>();
             readonly Func<KartStili> _secili;
-            readonly Func<(Color Vurgu, double Koyuluk)> _renk;
+            readonly Func<(Color Vurgu, double Koyuluk, int Buzlanma)> _renk;
 
-            public StilSecici(Panel panel, Func<KartStili> secili, Action<KartStili> sec, Func<(Color, double)> renk)
+            public StilSecici(Panel panel, Func<KartStili> secili, Action<KartStili> sec, Func<(Color, double, int)> renk)
             {
                 _secili = secili;
                 _renk = renk;
@@ -336,11 +377,11 @@ namespace SistemPaneli
             public void Yenile()
             {
                 var secili = _secili();
-                var (vurgu, koyuluk) = _renk();
+                var (vurgu, koyuluk, buzlanma) = _renk();
                 foreach (var (stil, cerceve, onizleme) in _kutular)
                 {
                     cerceve.BorderBrush = stil == secili ? new SolidColorBrush(vurgu) : new SolidColorBrush(Color.FromRgb(39, 43, 56));
-                    onizleme.Ayarla(stil, vurgu, koyuluk);
+                    onizleme.Ayarla(stil, vurgu, koyuluk, buzlanma);
                 }
             }
         }

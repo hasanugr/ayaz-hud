@@ -52,9 +52,14 @@ namespace SistemPaneli.Cekirdek
         public static readonly FpsDurumu Baslatiliyor = new FpsDurumu { Hal = FpsHali.Baslatiliyor };
 
         public FpsHali Hal;
+        /// <summary>Son 1 saniyenin ortalama FPS'i.</summary>
         public int Deger;
+        /// <summary>Son 10 saniyedeki en yavaş %1'lik karelerin FPS karşılığı; takılmaları gösterir.</summary>
         public int Yuzde1Dusuk;
-        public double KareSuresi; // ms
+        /// <summary>İki kare arasındaki ortalama süre (ms), yani 1000 / FPS.</summary>
+        public double KareSuresi;
+        /// <summary>Karenin hazırlanmaya başlamasından ekranda görünmesine kadar geçen ortalama süre (ms).</summary>
+        public double? Gecikme;
         public string Uygulama;
     }
 }

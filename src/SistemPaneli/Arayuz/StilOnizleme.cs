@@ -21,8 +21,8 @@ namespace SistemPaneli.Arayuz
         KartStili _stil = KartStili.Bulanik;
         Color _vurgu = Tema.VarsayilanVurgu;
         double _koyuluk = 0.45;
-        bool _buzlanma;
-        double _buzKoyuluk = 0.2;
+        int _buzlanma, _kartBuzlanmasi = 1;
+        double _karartma;
 
         public StilOnizleme()
         {
@@ -31,19 +31,20 @@ namespace SistemPaneli.Arayuz
             SizeChanged += (s, e) => Kur();
         }
 
-        public void Ayarla(KartStili stil, Color vurgu, double koyuluk)
+        public void Ayarla(KartStili stil, Color vurgu, double koyuluk, int kartBuzlanmasi)
         {
             _stil = stil;
             _vurgu = vurgu;
             _koyuluk = koyuluk;
+            _kartBuzlanmasi = Math.Max(1, kartBuzlanmasi);
             Kur();
         }
 
-        /// <summary>Arka plan buzlanması önizlemesi: kartın arkasındaki bütün duvar kâğıdı bulanık.</summary>
-        public void Buzlanma(bool acik, double koyuluk)
+        /// <summary>Arka plan önizlemesi: kartın arkasındaki bütün duvar kâğıdı buzlu (0–3) ve/veya karartılmış.</summary>
+        public void Buzlanma(int seviye, double karartma)
         {
-            _buzlanma = acik;
-            _buzKoyuluk = koyuluk;
+            _buzlanma = seviye;
+            _karartma = karartma;
             Kur();
         }
 
@@ -54,11 +55,10 @@ namespace SistemPaneli.Arayuz
             var tum = new Rect(0, 0, w, h);
 
             Children.Add(new Rectangle { Fill = DuvarKagidi });
-            if (_buzlanma)
-            {
-                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 22 }, Margin = new Thickness(-24) });
-                Children.Add(new Rectangle { Fill = new SolidColorBrush(Color.FromArgb((byte)(255 * _buzKoyuluk), 8, 10, 16)) });
-            }
+            if (_buzlanma > 0)
+                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 8 + 10 * _buzlanma }, Margin = new Thickness(-40) });
+            if (_karartma > 0)
+                Children.Add(new Rectangle { Fill = new SolidColorBrush(Color.FromArgb((byte)(255 * _karartma), 8, 10, 16)) });
 
             // Kart: önizlemenin ortasında
             var kart = new Rect(w * 0.12, h * 0.16, w * 0.76, h * 0.68);
@@ -66,7 +66,7 @@ namespace SistemPaneli.Arayuz
             sekil.Freeze();
             if (_stil == KartStili.Bulanik || _stil == KartStili.Akrilik)
             {
-                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 16 }, Clip = sekil });
+                Children.Add(new Rectangle { Fill = DuvarKagidi, Effect = new BlurEffect { Radius = 8 + 8 * _kartBuzlanmasi }, Clip = sekil });
                 if (_stil == KartStili.Akrilik)
                 {
                     Children.Add(new Rectangle { Fill = new SolidColorBrush(Color.FromArgb(34, 255, 255, 255)), Clip = sekil });
