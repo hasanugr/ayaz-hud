@@ -89,6 +89,7 @@ namespace AyazHUD.Arayuz
             // ---------- Tepsi ve bildirimler ----------
             ["t.duzenle"] = ("Düzenle (widget'ları sürükle)", "Edit layout (drag widgets)"),
             ["t.widgetlar"] = ("Widget'lar", "Widgets"),
+            ["t.ekran"] = ("Ekran", "Screen"),
             ["t.sifirla"] = ("Konumları sıfırla", "Reset positions"),
             ["t.ayarlar"] = ("Ayarlar…", "Settings…"),
             ["t.baslangic"] = ("Windows ile başlat", "Start with Windows"),
@@ -125,6 +126,12 @@ namespace AyazHUD.Arayuz
 
             ["a.widgetAciklama"] = ("Hangi widget'ların görüneceğini seç ve istersen her birine ayrı bir görünüm ver.",
                                     "Choose which widgets are shown and optionally give each one its own look."),
+            ["a.ekran"] = ("Ekran", "Screen"),
+            ["a.ekranAciklama"] = ("Widget'ların durduğu ekran. Seçtiğinde bütün widget'lar düzenleri korunarak oraya taşınır; konumları sıfırlayınca da bu ekrana dizilirler. Düzenleme açıkken tek tek başka ekranlara da sürükleyebilirsin.",
+                                   "The screen the widgets live on. Choosing one moves all widgets there, keeping their arrangement, and resetting positions lays them out on it. While editing, you can still drag single widgets to other screens."),
+            ["a.ekranAdi"] = ("Ekran {0}", "Display {0}"),
+            ["a.birincil"] = ("birincil", "primary"),
+            ["a.widgetlarBurada"] = ("Widget'lar burada", "Widgets here"),
             ["a.yerlesim"] = ("Yerleşim", "Layout"),
             ["a.yerlesimAciklama"] = ("Düzenleme açıkken widget'ları sürükle; birbirlerine ve ekran kenarına yaklaşınca hizalanırlar.",
                                       "While editing, drag the widgets; they snap to each other and to the screen edges."),

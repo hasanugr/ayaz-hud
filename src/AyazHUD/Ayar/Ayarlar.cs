@@ -37,6 +37,12 @@ namespace AyazHUD.Ayar
         /// <summary>Arayüz dili: "tr" ya da "en".</summary>
         [DataMember(Order = 9)] public string Dil { get; set; }
 
+        /// <summary>
+        /// Widget'ların ekranı (monitörün aygıt adı, \\.\DISPLAY1 gibi). Varsayılan yerleşim ve konum sıfırlama
+        /// bu ekranı kullanır. Boşsa ya da ekran bağlı değilse: varsa yan ekran, yoksa birincil.
+        /// </summary>
+        [DataMember(Order = 10)] public string Ekran { get; set; }
+
         public Ayarlar() => Varsayilanlar();
 
         // Seri hale getirici kurucuyu çağırmadığı için eksik alanların varsayılanları burada verilir

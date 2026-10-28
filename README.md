@@ -12,6 +12,7 @@ Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, bell
   - Pompa ve fanlar, disk sıcaklıkları.
   - Ağ hızı.
 - **Donanımı kendisi tanır:** Sensörler ada ve türe göre seçilir, böylece farklı bilgisayarlarda da çalışır. Seçimin özeti günlük dosyasına yazılır.
+- **Ekran seçimi:** Ayarlarda monitörler Windows'taki yerleşimleriyle çizilir; widget'ların ekranı oradan (ya da tepsi menüsünden) seçilir. Seçince widget'lar düzenleri korunarak o ekrana taşınır; "Konumları sıfırla" da onları o ekrana dizer.
 - **Düzenleme:** Widget'lar sürüklenir, birbirine hizalanır, açılıp kapatılır.
 - **Görünüm:**
   - Dört kart stili var: buzlu cam, akrilik, koyu ve şeffaf.
@@ -66,6 +67,7 @@ Sürüm numarası `src/AyazHUD/AyazHUD.csproj` içindeki `<Version>` alanında. 
 | Tasarım | `Arayuz/` | Halka ölçer, çizgi grafik, çubuk, harf aralıklı başlık. Ortak renkler `Tema.cs` içinde. Widget'a göre değişen stil ve renk `Gorunum.cs` içinde; her pencere kendi `Gorunum` örneğini içindeki denetimlere miras olarak verir. |
 | Buzlanma düzeyleri | `Arayuz/BuzSeviyesi.cs`, `Widgetlar/MasaustuKopyasi.cs`, `Widgetlar/KatmanPenceresi.cs` | Windows'un bulanıklık yarıçapı sabit ve güçlü. Hafif düzeylerde masaüstünün DWM küçük resmi (thumbnail) birkaç piksel kaydırılarak üst üste bindirilir; çizimi DWM yapar, uygulama kare işlemez. Orta düzeylerde bu kopya Windows bulanıklığının üstünde yarı saydam durur, güçlü düzeylerde bulanık pencereler üst üste konur. |
 | Arka plan buzlanması | `Widgetlar/BuzKatmani.cs` | Monitörü kaplayan, tıklamaları geçiren buzlanma katmanları. Widget'lar onlara bağlı (sahipli) pencereler olduğu için hep üstlerinde kalır. |
+| Ekranlar | `Yerel/Ekranlar.cs`, `Arayuz/EkranSecici.cs` | Monitörler, ölçekleri ve modelleri (`QueryDisplayConfig`). Numara, Windows'un Ekran ayarlarındaki gibi aygıt adından gelir (`\\.\DISPLAY2` → 2). |
 | Ayarlar | `Ayar/Ayarlar.cs`, `AyarPenceresi.xaml` | `%APPDATA%\AyazHUD\ayarlar.json` |
 | Günlük | `Cekirdek/Gunluk.cs` | `%LOCALAPPDATA%\AyazHUD\gunluk.txt` |
 | Kurulum | `kurulum/AyazHUD.iss` | Inno Setup betiği. PawnIO'yu `-install -silent` ile kurar, görevi `--gorev-kur` ile oluşturur. |

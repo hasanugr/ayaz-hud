@@ -215,6 +215,126 @@ namespace AyazHUD.Yerel
         [DllImport("shcore.dll")]
         public static extern int GetDpiForMonitor(IntPtr hMonitor, int dpiType, out uint dpiX, out uint dpiY);
 
+        // ---------- Monitör adları (Windows'un Ekran ayarlarında görünen "AOC 27G1G4" gibi) ----------
+
+        public const uint QDC_ONLY_ACTIVE_PATHS = 2;
+        public const uint DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME = 1;
+        public const uint DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME = 2;
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct LUID
+        {
+            public uint LowPart;
+            public int HighPart;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DISPLAYCONFIG_PATH_INFO
+        {
+            public LUID sourceAdapterId;
+            public uint sourceId;
+            public uint sourceModeInfoIdx;
+            public uint sourceStatusFlags;
+            public LUID targetAdapterId;
+            public uint targetId;
+            public uint targetModeInfoIdx;
+            public uint outputTechnology;
+            public uint rotation;
+            public uint scaling;
+            public uint refreshRateNumerator;
+            public uint refreshRateDenominator;
+            public uint scanLineOrdering;
+            public int targetAvailable;
+            public uint targetStatusFlags;
+            public uint flags;
+        }
+
+        // İçeriği kullanılmıyor; QueryDisplayConfig yalnızca yer istiyor
+        [StructLayout(LayoutKind.Sequential, Size = 64)]
+        public struct DISPLAYCONFIG_MODE_INFO
+        {
+            public uint infoType;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DISPLAYCONFIG_DEVICE_INFO_HEADER
+        {
+            public uint type;
+            public uint size;
+            public LUID adapterId;
+            public uint id;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct DISPLAYCONFIG_SOURCE_DEVICE_NAME
+        {
+            public DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string viewGdiDeviceName;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct DISPLAYCONFIG_TARGET_DEVICE_NAME
+        {
+            public DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+            public uint flags;
+            public uint outputTechnology;
+            public ushort edidManufactureId;
+            public ushort edidProductCodeId;
+            public uint connectorInstance;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
+            public string monitorFriendlyDeviceName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string monitorDevicePath;
+        }
+
+        [DllImport("user32.dll")]
+        public static extern int GetDisplayConfigBufferSizes(uint flags, out uint pathCount, out uint modeCount);
+
+        [DllImport("user32.dll")]
+        public static extern int QueryDisplayConfig(uint flags, ref uint pathCount, [Out] DISPLAYCONFIG_PATH_INFO[] paths,
+            ref uint modeCount, [Out] DISPLAYCONFIG_MODE_INFO[] modes, IntPtr topologyId);
+
+        [DllImport("user32.dll")]
+        public static extern int DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_SOURCE_DEVICE_NAME request);
+
+        [DllImport("user32.dll")]
+        public static extern int DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_TARGET_DEVICE_NAME request);
+
+        /// <summary>GDI aygıt adından (\\.\DISPLAY1) monitörün adına; okunamayanlar listede yok.</summary>
+        public static System.Collections.Generic.Dictionary<string, string> MonitorAdlari()
+        {
+            var sonuc = new System.Collections.Generic.Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                if (GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, out uint yolSayisi, out uint kipSayisi) != 0) return sonuc;
+                var yollar = new DISPLAYCONFIG_PATH_INFO[yolSayisi];
+                var kipler = new DISPLAYCONFIG_MODE_INFO[kipSayisi];
+                if (QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, ref yolSayisi, yollar, ref kipSayisi, kipler, IntPtr.Zero) != 0) return sonuc;
+                for (int i = 0; i < yolSayisi; i++)
+                {
+                    var kaynak = new DISPLAYCONFIG_SOURCE_DEVICE_NAME();
+                    kaynak.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+                    kaynak.header.size = (uint)Marshal.SizeOf(kaynak);
+                    kaynak.header.adapterId = yollar[i].sourceAdapterId;
+                    kaynak.header.id = yollar[i].sourceId;
+                    var hedef = new DISPLAYCONFIG_TARGET_DEVICE_NAME();
+                    hedef.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+                    hedef.header.size = (uint)Marshal.SizeOf(hedef);
+                    hedef.header.adapterId = yollar[i].targetAdapterId;
+                    hedef.header.id = yollar[i].targetId;
+                    if (DisplayConfigGetDeviceInfo(ref kaynak) == 0 && DisplayConfigGetDeviceInfo(ref hedef) == 0
+                        && !string.IsNullOrWhiteSpace(hedef.monitorFriendlyDeviceName))
+                        sonuc[kaynak.viewGdiDeviceName] = hedef.monitorFriendlyDeviceName.Trim();
+                }
+            }
+            catch (Exception)
+            {
+                // Ad yalnızca gösterim için; okunamazsa numara yeter
+            }
+            return sonuc;
+        }
+
         // ---------- İş nesnesi (PresentMon uygulamayla birlikte kapansın) ----------
 
         public const int JobObjectExtendedLimitInformation = 9;

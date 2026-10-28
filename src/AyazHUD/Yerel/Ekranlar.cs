@@ -12,6 +12,19 @@ namespace AyazHUD.Yerel
         public Win32.RECT CalismaAlani; // görev çubuğu hariç
         public bool Birincil;
         public double Olcek = 1;       // 1.0 = %100
+        /// <summary>Monitörün modeli ("AOC 27G1G4"); yalnızca <see cref="Hepsi"/> doldurur, okunamazsa boş.</summary>
+        public string Model;
+
+        /// <summary>Windows'un Ekran ayarlarındaki numara: aygıt adının sonundaki sayı (\\.\DISPLAY2 → 2).</summary>
+        public int Numara
+        {
+            get
+            {
+                int i = Ad.Length;
+                while (i > 0 && char.IsDigit(Ad[i - 1])) i--;
+                return i < Ad.Length && int.TryParse(Ad.Substring(i), out int n) ? n : 0;
+            }
+        }
 
         public static List<Ekran> Hepsi()
         {
@@ -22,7 +35,9 @@ namespace AyazHUD.Yerel
                 if (e != null) liste.Add(e);
                 return true;
             }, IntPtr.Zero);
-            return liste;
+            var adlar = Win32.MonitorAdlari();
+            foreach (var e in liste) e.Model = adlar.TryGetValue(e.Ad, out var m) ? m : null;
+            return liste.OrderBy(e => e.Numara).ToList();
         }
 
         /// <summary>Pencerenin (çoğunu) içeren monitör.</summary>

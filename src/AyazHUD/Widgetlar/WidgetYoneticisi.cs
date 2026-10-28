@@ -81,6 +81,7 @@ namespace AyazHUD.Widgetlar
             {
                 p.Hide();
                 BuzUygula();
+                YerlesimDegisti?.Invoke();
             }
             _kaydet();
         }
@@ -162,6 +163,63 @@ namespace AyazHUD.Widgetlar
             _kaydet();
         }
 
+        /// <summary>Widget'ların taşındığında ya da yerleşim değiştiğinde (ayarlardaki ekran çizimi kendini yeniler).</summary>
+        public event Action YerlesimDegisti;
+
+        /// <summary>Widget'ların ekranı: seçilen ekran bağlıysa o, değilse varsa yan ekran, yoksa birincil.</summary>
+        public Ekran AnaEkran(List<Ekran> ekranlar) =>
+            ekranlar.FirstOrDefault(e => e.Ad == _ayarlar.Ekran) ?? Ekran.Varsayilan(ekranlar);
+
+        /// <summary>Açık widget'ın ekrandaki yeri (fiziksel piksel); kapalıysa null.</summary>
+        public Win32.RECT? Konum(string kimlik) =>
+            _pencereler.TryGetValue(kimlik, out var p) && p.IsVisible ? p.Dikdortgen : (Win32.RECT?)null;
+
+        /// <summary>
+        /// Widget'ları seçilen ekrana taşır, kullanıcının düzenini koruyarak (ölçek farkı hesaba katılır):
+        /// - Her widget yatayda yakın olduğu kenara (sol ya da sağ sütun) aynı uzaklıkta durur.
+        /// - Bir sütun dikeyde bütün olarak taşınır: üstü ekranın üstüne mi altı altına mı yakınsa o kenara bağlanır;
+        ///   böylece üst üste dizili kartlar ayrılmaz.
+        /// </summary>
+        public void EkranSec(string ad)
+        {
+            var ekranlar = Ekran.Hepsi();
+            var yeni = ekranlar.FirstOrDefault(e => e.Ad == ad);
+            if (yeni == null) return;
+            _ayarlar.Ekran = ad;
+
+            var tasinacak = new List<(WidgetAyari W, Ekran Eski, int Gen, int Yuk, int Sag, int Alt)>();
+            foreach (var w in _ayarlar.Widgetlar)
+            {
+                if (w.Monitor == null || w.Monitor == yeni.Ad) continue;
+                var eski = ekranlar.FirstOrDefault(e => e.Ad == w.Monitor);
+                if (eski == null || !_pencereler.TryGetValue(w.Kimlik, out var p) || p.Tutamac == IntPtr.Zero)
+                {
+                    // Boyutu bilinmiyor; varsayılan yerleşime katılır
+                    w.Monitor = null;
+                    continue;
+                }
+                var r = p.Dikdortgen;
+                tasinacak.Add((w, eski, r.Genislik, r.Yukseklik, eski.Alan.Genislik - w.X - r.Genislik, eski.Alan.Yukseklik - w.Y - r.Yukseklik));
+            }
+            foreach (var sutun in tasinacak.GroupBy(t => (t.Eski.Ad, Solda: t.W.X <= t.Sag)))
+            {
+                bool usttenBagli = sutun.Min(t => t.W.Y) <= sutun.Min(t => t.Alt);
+                foreach (var t in sutun)
+                {
+                    double k = yeni.Olcek / t.Eski.Olcek;
+                    int gen = (int)Math.Round(t.Gen * k), yuk = (int)Math.Round(t.Yuk * k);
+                    int x = sutun.Key.Solda ? (int)Math.Round(t.W.X * k) : yeni.Alan.Genislik - gen - (int)Math.Round(t.Sag * k);
+                    int y = usttenBagli ? (int)Math.Round(t.W.Y * k) : yeni.Alan.Yukseklik - yuk - (int)Math.Round(t.Alt * k);
+                    t.W.Monitor = yeni.Ad;
+                    t.W.X = Math.Max(0, Math.Min(x, yeni.Alan.Genislik - gen));
+                    t.W.Y = Math.Max(0, Math.Min(y, yeni.Alan.Yukseklik - yuk));
+                }
+            }
+            Gunluk.Yaz($"Widget ekranı: {yeni.Numara} ({yeni.Model ?? yeni.Ad})");
+            Yerlestir(false);
+            _kaydet();
+        }
+
         public void Kapat()
         {
             foreach (var p in _pencereler.Values)
@@ -224,11 +282,12 @@ namespace AyazHUD.Widgetlar
                 }
             }
             BuzUygula();
+            YerlesimDegisti?.Invoke();
         }
 
         Dictionary<string, (int X, int Y)> VarsayilanKonumlar(List<Ekran> ekranlar)
         {
-            var ekran = Ekran.Varsayilan(ekranlar);
+            var ekran = AnaEkran(ekranlar);
             double s = ekran.Olcek;
             var alan = ekran.CalismaAlani;
             int kenar = (int)Math.Round(Kenar * s);
@@ -283,6 +342,7 @@ namespace AyazHUD.Widgetlar
             _kaydet();
             // Başka monitöre taşındıysa arka plan katmanı da onu izlesin
             if (_ayarlar.ArkaPlanAcik) BuzUygula();
+            YerlesimDegisti?.Invoke();
         }
     }
 }

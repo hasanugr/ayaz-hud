@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using AyazHUD.Arayuz;
 using AyazHUD.Widgetlar;
+using AyazHUD.Yerel;
 
 namespace AyazHUD
 {
@@ -13,7 +14,7 @@ namespace AyazHUD
         readonly App _uygulama;
         readonly WidgetYoneticisi _widgetlar;
         readonly NotifyIcon _simge;
-        readonly ToolStripMenuItem _duzenle, _widgetMenusu, _baslangic;
+        readonly ToolStripMenuItem _duzenle, _widgetMenusu, _ekranMenusu, _baslangic;
 
         public Tepsi(App uygulama, WidgetYoneticisi widgetlar)
         {
@@ -39,6 +40,11 @@ namespace AyazHUD
                 _widgetMenusu.DropDownItems.Add(oge);
             }
             menu.Items.Add(_widgetMenusu);
+            // Monitörler değişebildiği için menü her açılışta doldurulur
+            _ekranMenusu = new ToolStripMenuItem(Dil.M("t.ekran"));
+            ((ToolStripDropDownMenu)_ekranMenusu.DropDown).ShowImageMargin = false;
+            ((ToolStripDropDownMenu)_ekranMenusu.DropDown).ShowCheckMargin = true;
+            menu.Items.Add(_ekranMenusu);
             menu.Items.Add(Dil.M("t.sifirla"), null, (s, e) => _widgetlar.KonumlariSifirla());
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(Dil.M("t.ayarlar"), null, (s, e) => _uygulama.AyarlariAc());
@@ -51,6 +57,17 @@ namespace AyazHUD
             {
                 _duzenle.Checked = _widgetlar.Duzenleme;
                 foreach (ToolStripMenuItem oge in _widgetMenusu.DropDownItems) oge.Checked = _widgetlar.AcikMi((string)oge.Tag);
+                var ekranlar = Ekran.Hepsi();
+                var ana = _widgetlar.AnaEkran(ekranlar);
+                _ekranMenusu.DropDownItems.Clear();
+                foreach (var ekran in ekranlar)
+                {
+                    string ad = ekran.Ad;
+                    string model = ekran.Model ?? string.Format(Dil.M("a.ekranAdi"), ekran.Numara);
+                    _ekranMenusu.DropDownItems.Add(new ToolStripMenuItem($"{ekran.Numara} · {model} ({ekran.Alan.Genislik} × {ekran.Alan.Yukseklik})", null,
+                        (o, a) => _widgetlar.EkranSec(ad)) { Checked = ad == ana?.Ad });
+                }
+                _ekranMenusu.Visible = ekranlar.Count > 1;
                 bool? baslangic = _uygulama.BaslangictaMi();
                 _baslangic.Enabled = baslangic != null;
                 _baslangic.Checked = baslangic == true;

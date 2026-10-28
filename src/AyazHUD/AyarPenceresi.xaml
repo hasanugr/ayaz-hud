@@ -281,6 +281,14 @@
                                Text="{a:M a.widgetAciklama}" />
 
                     <Border Style="{StaticResource Grup}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource AltBaslik}" Text="{a:M a.ekran}" />
+                            <TextBlock Style="{StaticResource Aciklama}" Text="{a:M a.ekranAciklama}" />
+                            <a:EkranSecici x:Name="Ekranlar" Height="190" Margin="0,16,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Grup}">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button x:Name="DuzenleDugmesi" Click="Duzenle_Click" />

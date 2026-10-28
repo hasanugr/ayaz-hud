@@ -68,6 +68,7 @@ namespace AyazHUD
             SayfaSensorler.Visibility = sayfa == "Sensorler" ? Visibility.Visible : Visibility.Collapsed;
             SayfaHakkinda.Visibility = sayfa == "Hakkinda" ? Visibility.Visible : Visibility.Collapsed;
             if (sayfa == "Sensorler") SensorListesi(_uygulama.SonAnlik);
+            if (sayfa == "Widgetlar") EkranlariCiz();
         }
 
         /// <summary>Değişikliği widget'lara uygular ve kaydı tetikler.</summary>
@@ -154,6 +155,11 @@ namespace AyazHUD
                 WidgetListesi.Items.Add(new ListBoxItem { Content = t.Ad, Tag = t.Kimlik });
             DuzenleDugmesiYaz();
 
+            // Ekran seçimi; widget'lar taşınınca çizim kendini yeniler
+            Ekranlar.Secildi += ad => _widgetlar.EkranSec(ad);
+            _widgetlar.YerlesimDegisti += EkranlariCiz;
+            Closed += (s, e) => _widgetlar.YerlesimDegisti -= EkranlariCiz;
+
             WidgetGoster.Click += (s, e) =>
             {
                 if (_seciliWidget != null) _widgetlar.Ac(_seciliWidget, WidgetGoster.IsChecked == true);
@@ -228,6 +234,13 @@ namespace AyazHUD
             _ozelStil.Yenile();
             _ozelRenk.Yenile();
             _yukleniyor = eski;
+        }
+
+        void EkranlariCiz()
+        {
+            var ekranlar = Ekran.Hepsi();
+            var widgetlar = _widgetlar.Tanimlar.Select(t => _widgetlar.Konum(t.Kimlik)).Where(r => r != null).Select(r => r.Value).ToList();
+            Ekranlar.Ayarla(ekranlar, _widgetlar.AnaEkran(ekranlar)?.Ad, widgetlar);
         }
 
         void DuzenleDugmesiYaz() =>
