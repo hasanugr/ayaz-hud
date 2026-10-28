@@ -2,6 +2,26 @@
 
 Oyun oynarken yan ekranda FPS'i, işlemci ve ekran kartı sıcaklığını, belleği, fanları ve ağı gösteren masaüstü widget'ları. Widget'lar duvar kâğıdının (Wallpaper Engine dahil) üstünde, açık pencerelerin altında durur; arkaları bulanık camdır.
 
+**[İndir: son sürüm](https://github.com/hasanugr/ayaz-hud/releases/latest)**
+
+![Ayaz HUD yan ekranda: saat, işlemci, bellek, soğutma, Rocket League'de 179 FPS, ekran kartı ve ağ widget'ları, gece şehri duvar kâğıdının üstünde](gorseller/masaustu-sehir.jpg)
+
+<p align="center">
+  <img src="gorseller/masaustu-kulube.jpg" width="49%" alt="Karlı orman duvar kâğıdında buz mavisi widget'lar">
+  <img src="gorseller/masaustu-siyah.jpg" width="49%" alt="Siyah duvar kâğıdında gümüş renkli widget'lar">
+  <img src="gorseller/masaustu-acik.jpg" width="49%" alt="Açık renkli duvar kâğıdında mercan renkli widget'lar">
+  <img src="gorseller/masaustu-genis.jpg" width="49%" alt="2560×1440 ekranda nane yeşili widget'lar">
+</p>
+
+<p align="center">
+  <img src="gorseller/ayarlar-gorunum.png" width="49%" alt="Ayarlar penceresi, Görünüm: kart stilleri, buzlanma, koyuluk ve vurgu rengi">
+  <img src="gorseller/ayarlar-widgetlar.png" width="49%" alt="Ayarlar penceresi, Widget'lar: monitörlerin yerleşimine göre çizilmiş ekran seçici">
+</p>
+
+<sub>Görüntülerdeki duvar kâğıtları sahiplerine aittir; yalnızca örnek olarak kullanıldı.</sub>
+
+## Özellikler
+
 - **Tek kurulum dosyası:** Kurulum internetten bir şey indirmez. Gereken her şey içindedir: .NET Framework 4.8 Windows 10/11'de zaten var.
 - **Gösterilenler:**
   - Saat ve tarih.
@@ -63,6 +83,7 @@ Sürüm numarası `src/AyazHUD/AyazHUD.csproj` içindeki `<Version>` alanında. 
 | Açılış ve yetki | `App.xaml.cs`, `Cekirdek/Gorev.cs` | Yönetici değilse zamanlanmış görevi çalıştırıp çıkar. Görev yoksa UAC sorar; UAC reddedilirse sınırlı kipte açılır. |
 | Sensörler | `Cekirdek/SensorServisi.cs`, `Cekirdek/DonanimTanima.cs` | LibreHardwareMonitor ayrı bir iş parçacığında saniyede bir okunur. Seçim turlarında bütün donanım okunur, diğer turlarda yalnızca gösterilenler. |
 | FPS | `Cekirdek/FpsOlcer.cs` | PresentMon'un CSV çıktısı okunur. Ön plandaki ya da en yüksek FPS'li süreç oyun sayılır; listedeki tarayıcı, Discord gibi programlar hariç tutulur. PresentMon bir iş nesnesine bağlıdır, uygulama kapanınca o da kapanır. |
+| Win+D | `Widgetlar/MasaustuGosterimi.cs` | "Masaüstünü göster" masaüstü penceresini her şeyin üstüne çıkarır. Ön plan masaüstüne geçip masaüstü widget'ların üstüne çıktığında widget'lar onun üstüne alınır, başka pencere öne gelince yine en alta iner. |
 | Widget penceresi | `Widgetlar/WidgetPenceresi.cs` | Saydam, kenarlıksız WPF penceresi. Bulanıklık için `SetWindowCompositionAttribute` kullanılır, çünkü DWM'nin resmi arka planı pencere etkin değilken kayboluyor. Köşeler Windows 11'in kendi yuvarlamasıyla kırpılır. Pencere hep en altta durur, odak çalmaz, kilitliyken tıklamaları arkasına geçirir. |
 | Tasarım | `Arayuz/` | Halka ölçer, çizgi grafik, çubuk, harf aralıklı başlık. Ortak renkler `Tema.cs` içinde. Widget'a göre değişen stil ve renk `Gorunum.cs` içinde; her pencere kendi `Gorunum` örneğini içindeki denetimlere miras olarak verir. |
 | Buzlanma düzeyleri | `Arayuz/BuzSeviyesi.cs`, `Widgetlar/MasaustuKopyasi.cs`, `Widgetlar/KatmanPenceresi.cs` | Windows'un bulanıklık yarıçapı sabit ve güçlü. Hafif düzeylerde masaüstünün DWM küçük resmi (thumbnail) birkaç piksel kaydırılarak üst üste bindirilir; çizimi DWM yapar, uygulama kare işlemez. Orta düzeylerde bu kopya Windows bulanıklığının üstünde yarı saydam durur, güçlü düzeylerde bulanık pencereler üst üste konur. |
@@ -81,7 +102,6 @@ Komut satırı seçenekleri:
 
 ## Bilinen sınırlar
 
-- Win+D (masaüstünü göster) widget'ları da gizler.
 - Çekirdek seviyesinde hile koruması olan oyunlarla (Vanguard, FACEIT) uyum denenmedi.
 - Windows 10'da kart köşeleri yuvarlak değil.
 

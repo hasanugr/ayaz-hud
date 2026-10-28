@@ -103,9 +103,9 @@ namespace AyazHUD.Widgetlar
         public void Yerlestir(int x, int y, int genislik, int yukseklik)
         {
             if (Tutamac == IntPtr.Zero) return;
-            bool sahipsiz = Owner == null;
-            Win32.SetWindowPos(Tutamac, sahipsiz ? Win32.HWND_BOTTOM : IntPtr.Zero, x, y, genislik, yukseklik,
-                Win32.SWP_NOACTIVATE | (sahipsiz ? 0 : Win32.SWP_NOZORDER));
+            bool enAlta = Owner == null && !MasaustuGosterimi.Acik;
+            Win32.SetWindowPos(Tutamac, enAlta ? Win32.HWND_BOTTOM : IntPtr.Zero, x, y, genislik, yukseklik,
+                Win32.SWP_NOACTIVATE | (enAlta ? 0 : Win32.SWP_NOZORDER));
             KopyayiYerlestir();
         }
 
@@ -118,7 +118,7 @@ namespace AyazHUD.Widgetlar
 
         IntPtr PencereIslemi(IntPtr hwnd, int mesaj, IntPtr wParam, IntPtr lParam, ref bool islendi)
         {
-            if (mesaj == Win32.WM_WINDOWPOSCHANGING && Owner == null)
+            if (mesaj == Win32.WM_WINDOWPOSCHANGING && Owner == null && !MasaustuGosterimi.Acik)
             {
                 var konum = Marshal.PtrToStructure<Win32.WINDOWPOS>(lParam);
                 if ((konum.flags & Win32.SWP_NOZORDER) == 0)

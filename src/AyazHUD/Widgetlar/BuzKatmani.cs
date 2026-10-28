@@ -23,6 +23,9 @@ namespace AyazHUD.Widgetlar
         /// <summary>En üstteki katman; widget'lar buna bağlanır.</summary>
         public Window Ust => _katmanlar.Count > 0 ? _katmanlar[_katmanlar.Count - 1] : null;
 
+        /// <summary>En alttaki katman; diğer katmanlar ve widget'lar ona bağlı olduğu için z sırasında onunla taşınır.</summary>
+        public IntPtr Kok => _katmanlar.Count > 0 ? _katmanlar[0].Tutamac : IntPtr.Zero;
+
         public BuzKatmani(Ekran ekran) => _ekran = ekran;
 
         /// <param name="buzlanma">Yüzde (0 = yok).</param>

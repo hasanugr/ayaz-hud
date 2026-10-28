@@ -57,11 +57,16 @@ namespace AyazHUD.Widgetlar
             };
         }
 
+        MasaustuGosterimi _masaustu;
+
         public void Baslat()
         {
             foreach (var t in Tanimlar.Where(t => _ayarlar.Widget(t.Kimlik).Acik))
                 Pencere(t).Show();
             Yerlestir(true);
+            // Win+D'de widget'lar masaüstüyle birlikte görünür kalsın
+            _masaustu = new MasaustuGosterimi(() =>
+                _buzlar.Select(b => b.Kok).Concat(_pencereler.Values.Where(p => p.IsVisible).Select(p => p.Kok)));
         }
 
         public bool AcikMi(string kimlik) => _pencereler.TryGetValue(kimlik, out var p) && p.IsVisible;
@@ -222,6 +227,8 @@ namespace AyazHUD.Widgetlar
 
         public void Kapat()
         {
+            _masaustu?.Dispose();
+            _masaustu = null;
             foreach (var p in _pencereler.Values)
             {
                 p.TabandanAyir();

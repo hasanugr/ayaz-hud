@@ -158,6 +158,9 @@ namespace AyazHUD.Widgetlar
             EkKatmanlariKur();
         }
 
+        /// <summary>Arka plan katmanı yoksa zincirin en altındaki pencere (ek katman ya da widget'ın kendisi); varsa sıfır.</summary>
+        public IntPtr Kok => _tabanSahip != null ? IntPtr.Zero : _ekKatmanlar.Count > 0 ? _ekKatmanlar[0].Tutamac : Tutamac;
+
         /// <summary>Arka plan katmanından ayırır (katman kapanırken widget da kapanmasın); katmanlara dokunmaz.</summary>
         public void TabandanAyir()
         {
@@ -238,7 +241,8 @@ namespace AyazHUD.Widgetlar
             switch (mesaj)
             {
                 case Win32.WM_WINDOWPOSCHANGING:
-                    // Z sırası değişecekse pencereyi en alta (masaüstünün hemen üstüne) zorla
+                    // Z sırası değişecekse pencereyi en alta (masaüstünün hemen üstüne) zorla; Win+D sırasında değil
+                    if (MasaustuGosterimi.Acik) break;
                     var konum = Marshal.PtrToStructure<Win32.WINDOWPOS>(lParam);
                     if ((konum.flags & Win32.SWP_NOZORDER) == 0)
                     {

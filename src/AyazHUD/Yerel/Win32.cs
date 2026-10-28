@@ -25,7 +25,34 @@ namespace AyazHUD.Yerel
         public const uint SWP_NOACTIVATE = 0x0010;
         public const uint SWP_FRAMECHANGED = 0x0020;
 
+        public static readonly IntPtr HWND_TOP = IntPtr.Zero;
         public static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+
+        public const uint GW_HWNDPREV = 3;
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetWindow(IntPtr hWnd, uint command);
+
+        /// <summary>a, z sırasında b'nin üstünde mi?</summary>
+        public static bool UstundeMi(IntPtr a, IntPtr b)
+        {
+            for (var h = GetWindow(b, GW_HWNDPREV); h != IntPtr.Zero; h = GetWindow(h, GW_HWNDPREV))
+                if (h == a) return true;
+            return false;
+        }
+
+        // ---------- Pencere olayları (ön plandaki pencere değişti) ----------
+
+        public const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+        public const uint WINEVENT_OUTOFCONTEXT = 0;
+
+        public delegate void WinEventDelegate(IntPtr hook, uint olay, IntPtr hwnd, int nesne, int cocuk, uint isParcacigi, uint zaman);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr module, WinEventDelegate callback, uint processId, uint threadId, uint flags);
+
+        [DllImport("user32.dll")]
+        public static extern bool UnhookWinEvent(IntPtr hook);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct WINDOWPOS
